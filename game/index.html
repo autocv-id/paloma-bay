@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paloma Bay — Open-World Crime</title>
+<link rel="stylesheet" href="./style.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three.module.min.js" } }
+</script>
+</head>
+<body>
+<div id="scene-holder"></div>
+
+<div id="hud" style="display:none">
+  <!-- left-top column: mission panel with the dispatch panel directly under it -->
+  <div id="left-top">
+  <div id="mission-panel" class="panel">
+    <div id="mission-giver"></div>
+    <div id="mission-title">NO ACTIVE JOB</div>
+    <div id="mission-objective">Press M to take the next job from your fixer.</div>
+    <div id="mission-stage"><div id="mission-stage-fill"></div><span id="mission-stage-text"></span></div>
+    <div id="mission-next"></div>
+    <div id="mission-timer"></div>
+  </div>
+
+  <!-- police dispatch -->
+  <div id="dispatch-panel" class="panel" style="display:none">
+    <div id="dispatch-head"></div>
+    <div id="dispatch-rows"></div>
+    <div id="dispatch-foot"></div>
+  </div>
+  </div>
+
+  <!-- bottom-left: location, minimap, vitals -->
+  <div id="left-bottom">
+    <div id="location-card" class="panel">
+      <div id="district-name">PALOMA STRAND</div>
+      <div id="street-name">Paloma Boulevard</div>
+      <div id="standing-bar"><div id="standing-fill"></div></div>
+      <div id="standing-text">NEUTRAL · 58</div>
+    </div>
+    <div id="minimap-wrap"><canvas id="minimap" width="144" height="144"></canvas></div>
+    <div id="vitals" class="panel">
+      <div class="vital"><span>HEALTH</span><div class="v-bar"><div id="health-fill"></div></div><b id="health-text">100</b></div>
+      <div class="vital"><span>ARMOUR</span><div class="v-bar"><div id="armor-fill"></div></div><b id="armor-text">0</b></div>
+      <div class="vital rank"><span id="rank-name">ROOKIE</span><div class="v-bar"><div id="rank-bar-fill"></div></div><b id="rank-text">0 RP</b></div>
+    </div>
+  </div>
+
+  <!-- top-right: money, wanted, clock -->
+  <div id="top-right">
+    <div id="clock-line"><span id="day-text">DAY 1</span><span id="clock-text">17:24</span></div>
+    <div id="money-text">$2,500</div>
+    <div id="stars"></div>
+    <div id="air-banner" style="display:none"></div>
+    <div id="sight-text"></div>
+  </div>
+
+  <!-- right: weapons + crew -->
+  <div id="right-col">
+    <div id="weapons"></div>
+    <div id="crew"></div>
+  </div>
+
+  <!-- dialogue -->
+  <div id="dialogue" style="display:none">
+    <div id="dialogue-portrait">ID</div>
+    <div>
+      <div><span id="dialogue-name"></span> <span id="dialogue-role"></span></div>
+      <div id="dialogue-text"></div>
+      <div id="dialogue-hint">E ▸ NEXT</div>
+    </div>
+  </div>
+
+  <!-- speedometer + radio -->
+  <div id="speedo" class="panel">
+    <div id="speed-line"><span id="speed-number">0</span><span id="speed-unit">KM/H</span></div>
+    <div id="vehicle-name">ON FOOT</div>
+    <div id="vehicle-kind">PALOMA BAY</div>
+    <div id="condition-bar"><div id="condition-fill"></div></div>
+    <div id="condition-text"></div>
+    <div id="radio-text">♪ PALOMA FM 101.5</div>
+  </div>
+
+  <div id="banner" style="display:none"><div id="banner-text"></div><div id="banner-sub"></div></div>
+  <div id="location-banner" style="display:none"><div id="location-banner-name"></div><div id="location-banner-street"></div></div>
+  <div id="notice" style="display:none"></div>
+  <div id="crosshair" style="display:none">+</div>
+  <div id="hint">WASD drive / walk · F enter car · M job · G garage · R radio · Z/X/C crew · P pause</div>
+</div>
+
+<!-- title screen -->
+<div id="title-screen">
+  <div class="title-inner">
+    <div class="title-kicker">AN OPEN-WORLD CRIME GAME</div>
+    <h1>PALOMA BAY</h1>
+    <div class="title-tag">One city. Ten jobs. Every cop in the bay.</div>
+    <div id="feature-strip" class="strip"></div>
+    <div class="title-buttons">
+      <button id="btn-new">NEW GAME</button>
+      <button id="btn-continue">CONTINUE</button>
+      <button id="btn-howto">HOW TO PLAY</button>
+      <button id="btn-about">ABOUT THIS GAME</button>
+    </div>
+    <div id="howto-panel" class="info-panel" style="display:none">
+      <b>WASD</b> drive / walk &nbsp;·&nbsp; <b>Mouse</b> look &nbsp;·&nbsp; <b>Click</b> shoot &nbsp;·&nbsp; <b>F</b> enter / exit car<br>
+      <b>Space</b> handbrake &nbsp;·&nbsp; <b>Shift</b> run &nbsp;·&nbsp; <b>E</b> talk &nbsp;·&nbsp; <b>1–6</b> weapons &nbsp;·&nbsp; <b>Q</b> cycle weapon<br>
+      <b>M</b> next job &nbsp;·&nbsp; <b>G</b> garage &nbsp;·&nbsp; <b>T</b> call garage car &nbsp;·&nbsp; <b>R</b> radio &nbsp;·&nbsp; <b>Z/X/C</b> crew abilities &nbsp;·&nbsp; <b>P</b> pause
+    </div>
+    <div id="about-panel" class="info-panel" style="display:none">
+      <b>PALOMA BAY</b> is a complete open-world crime game in your browser: a sun-soaked coastal city to explore on foot
+      and by car, traffic and pedestrians, cars to steal and drive, a 5-star wanted level with police who pursue, ram,
+      roadblock and call in a helicopter, 10 story jobs with a crew, combat, a garage with upgrades, respect ranks,
+      saves and three radio stations. Built by an AI agent for the make.fun GTA 6 bounty.
+      <div id="about-strip" class="strip"></div>
+    </div>
+  </div>
+</div>
+
+<!-- pause menu -->
+<div id="pause-menu" style="display:none">
+  <div class="menu-inner panel">
+    <h2>PAUSED</h2>
+    <button id="btn-resume">RESUME</button>
+    <button id="btn-save">SAVE GAME</button>
+    <button id="btn-load">LOAD GAME</button>
+    <button id="btn-garage">GARAGE</button>
+    <button id="btn-radio">NEXT RADIO STATION</button>
+    <button id="btn-quit">QUIT TO TITLE</button>
+  </div>
+</div>
+
+<!-- garage -->
+<div id="garage-screen" style="display:none">
+  <div class="garage-inner panel">
+    <h2>BERTO'S GARAGE · FOUNDRY DISTRICT</h2>
+    <div id="garage-strip" class="strip"></div>
+    <div id="garage-stats"><span id="garage-money">$0</span><span id="garage-rank">RANK: ROOKIE</span></div>
+    <div id="garage-grid"></div>
+    <button id="btn-garage-close">BACK TO THE CITY</button>
+  </div>
+</div>
+
+<div id="selftest-results" style="display:none"></div>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
