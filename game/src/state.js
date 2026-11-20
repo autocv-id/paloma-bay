@@ -4,7 +4,7 @@
 
 import { TUNE, WEAPONS } from './config.js';
 
-export function freshState() {
+function freshState() {
   return {
     seed: 7,
     time: 0, // seconds since boot
@@ -78,7 +78,6 @@ export function resetState(seed = 7) {
 
 // ---- small helpers shared by systems ----
 export function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
-export function lerp(a, b, t) { return a + (b - a) * t; }
 export function dist2(ax, az, bx, bz) {
   const dx = ax - bx, dz = az - bz;
   return Math.sqrt(dx * dx + dz * dz);

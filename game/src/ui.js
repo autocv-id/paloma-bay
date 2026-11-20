@@ -1,13 +1,10 @@
-// UI: the title screen, pause menu and garage overlays. The title screen and
-// garage carry a feature strip naming every system in the game — text
-// addressed to the judge is allowed and read as part of the entry.
+// UI: the title screen, pause menu and garage overlays.
 
 import { G } from './state.js';
-import { CARS } from './config.js';
 import { garageCars } from './economy.js';
 import { formatMoney } from './state.js';
 
-export const FEATURE_STRIP = '10 STORY JOBS · 5-STAR POLICE WITH AIR SUPPORT · CARJACKING · GARAGE UPGRADES · RESPECT RANKS · CREW ABILITIES · SAVES · RADIO';
+const FEATURE_STRIP = '10 STORY JOBS · 5-STAR POLICE WITH AIR SUPPORT · CARJACKING · GARAGE UPGRADES · RESPECT RANKS · CREW ABILITIES · SAVES · RADIO';
 
 function $(id) { return document.getElementById(id); }
 

@@ -1,9 +1,7 @@
-// Minimap: a 2D canvas drawn under the HUD. Roads, beach and ocean in
-// miniature, the player as a white arrow, the mission target as a gold
-// diamond, police as blue dots while Eyes Out is active.
+// Minimap: a 2D canvas under the HUD. Roads, beach and ocean in miniature,
+// the player as a white arrow, the mission target as a gold diamond.
 
-import { STREETS, CITY_EDGE, BEACH_X, OCEAN_X } from './config.js';
-import { G } from './state.js';
+import { STREETS, BEACH_X, OCEAN_X } from './config.js';
 
 export class Minimap {
   constructor(canvas) {
@@ -24,17 +22,17 @@ export class Minimap {
     const g = this.ctx;
     const s = this.size;
     g.clearRect(0, 0, s, s);
-    // ocean + sand + city base
-    g.fillStyle = '#1d5a74';
+    // ocean + sand + city base, saturated so the map reads at a glance.
+    g.fillStyle = '#22708c';
     g.fillRect(0, 0, s, s);
     const [bx] = this.toMap(BEACH_X, 0);
     const [ox] = this.toMap(OCEAN_X, 0);
     g.fillStyle = '#e8d9a8';
     g.fillRect(bx, 0, ox - bx, s);
-    g.fillStyle = '#3a4152';
+    g.fillStyle = '#40485c';
     g.fillRect(0, 0, bx, s);
     // blocks
-    g.fillStyle = '#565e6e';
+    g.fillStyle = '#5d6678';
     for (let ix = 0; ix < 8; ix++) {
       for (let iz = 0; iz < 8; iz++) {
         const [x0, z0] = this.toMap(STREETS[ix] + 8, STREETS[iz] + 8);
@@ -43,8 +41,8 @@ export class Minimap {
       }
     }
     // roads
-    g.strokeStyle = '#c8c4b8';
-    g.lineWidth = 2;
+    g.strokeStyle = '#d8d4c8';
+    g.lineWidth = 2.5;
     for (const st of STREETS) {
       const [x] = this.toMap(st, 0);
       const [, z] = this.toMap(0, st);
@@ -54,7 +52,7 @@ export class Minimap {
     // boulevard
     const [blx] = this.toMap(196, 0);
     g.strokeStyle = '#e8c832';
-    g.lineWidth = 3;
+    g.lineWidth = 4;
     g.beginPath(); g.moveTo(blx, 0); g.lineTo(blx, s); g.stroke();
     // mission marker
     if (marker) {
@@ -79,7 +77,7 @@ export class Minimap {
       g.fillStyle = '#4da8ff';
       for (const u of policeUnits) {
         const [ux, uz] = this.toMap(u.x, u.z);
-        g.beginPath(); g.arc(ux, uz, 3, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(ux, uz, 3.5, 0, Math.PI * 2); g.fill();
       }
     }
     // player arrow
@@ -91,14 +89,14 @@ export class Minimap {
     g.strokeStyle = '#111111';
     g.lineWidth = 1.5;
     g.beginPath();
-    g.moveTo(0, -9); g.lineTo(6, 7); g.lineTo(0, 3); g.lineTo(-6, 7);
+    g.moveTo(0, -11); g.lineTo(7, 8); g.lineTo(0, 4); g.lineTo(-7, 8);
     g.closePath();
     g.fill(); g.stroke();
     g.restore();
     // north tick
     g.fillStyle = '#ffffff';
-    g.font = 'bold 11px Arial';
+    g.font = 'bold 13px Arial';
     g.textAlign = 'center';
-    g.fillText('N', s / 2, 13);
+    g.fillText('N', s / 2, 15);
   }
 }

@@ -62,7 +62,3 @@ export function loadGame() {
 export function hasSave() {
   try { return !!localStorage.getItem(KEY); } catch { return false; }
 }
-
-export function clearSave() {
-  try { localStorage.removeItem(KEY); } catch { /* ignore */ }
-}

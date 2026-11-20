@@ -67,10 +67,7 @@ export class Audio {
   }
 
   explosion() { this.noise(0.9, 0.5, 500); this.blip(55, 0.7, 'sine', 0.35); }
-  pickup() { this.blip(660, 0.09); setTimeout(() => this.blip(880, 0.12), 70); }
-  missionPass() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => this.blip(f, 0.16, 'triangle', 0.16), i * 110)); }
   wantedUp() { this.blip(440, 0.15, 'sawtooth', 0.12); setTimeout(() => this.blip(330, 0.2, 'sawtooth', 0.12), 130); }
-  uiClick() { this.blip(700, 0.05, 'square', 0.07); }
 
   setEngine(running, speedNorm) {
     if (!this.ctx) return;

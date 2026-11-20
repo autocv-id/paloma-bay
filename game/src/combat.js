@@ -1,7 +1,5 @@
 // Combat: hitscan shooting on foot, melee, explosions and burning wrecks.
-// Shooting is a ray from the camera through the crosshair; hits on cars,
-// police and pedestrians all use the same damage path, and the wanted
-// system hears every shot.
+// Shooting is a ray from the camera through the crosshair.
 
 import * as THREE from 'three';
 import { G } from './state.js';

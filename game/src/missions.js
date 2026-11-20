@@ -1,7 +1,5 @@
 // The mission engine: runs the story jobs from story.js as a stage machine.
 // Stages are goto / enterCar / deliver / loseCops / ram / destroy / survive.
-// Target cars are real vehicles with flee or attack AI — ramming and
-// shooting them uses the same damage model as the rest of the game.
 
 import * as THREE from 'three';
 import { G, dist2 } from './state.js';

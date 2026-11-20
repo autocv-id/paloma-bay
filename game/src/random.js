@@ -13,5 +13,3 @@ export function makeRng(seed) {
 
 export function range(rng, min, max) { return min + rng() * (max - min); }
 export function pick(rng, arr) { return arr[Math.floor(rng() * arr.length) % arr.length]; }
-export function pickIndex(rng, n) { return Math.floor(rng() * n) % n; }
-export function chance(rng, p) { return rng() < p; }

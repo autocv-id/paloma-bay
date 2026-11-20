@@ -35,12 +35,10 @@ export class Input {
 
   down(code) { return this.keys.has(code); }
   wasPressed(code) { return this.pressed.has(code); }
-  consume(code) { this.pressed.delete(code); }
 
   // Test harness: pretend a key was pressed this frame.
   fakePress(code) { this.pressed.add(code); this.keys.add(code); }
   fakeRelease(code) { this.keys.delete(code); }
-  fakeMouse() { this.mousePressed = true; this.mouseDown = true; }
 
   // Movement axes in camera space: forward/strafe -1..1.
   moveAxes() {

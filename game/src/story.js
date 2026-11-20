@@ -141,7 +141,6 @@ export const MISSIONS = [
   },
 ];
 
-export function missionById(id) { return MISSIONS.find((m) => m.id === id); }
 export function nextMission(doneIds) {
   return MISSIONS.find((m) => !doneIds.includes(m.id)) || null;
 }

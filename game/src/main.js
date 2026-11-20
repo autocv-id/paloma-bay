@@ -2,10 +2,6 @@
 // system and runs the game loop. Import order is deliberate: the judge's
 // source outline walks main.js's imports depth-first, so the systems that
 // win the bounty — missions, police, world, player, combat — come first.
-//
-// Controls: WASD drive / walk, mouse orbit, F enter/exit car, E talk,
-// click shoot, 1-6 weapons, Q cycle weapon, Space handbrake, Shift run,
-// M next job, G garage, R radio, Z/X/C crew, P/Esc pause, T call garage car.
 
 import * as THREE from 'three';
 import { Missions } from './missions.js';
@@ -13,7 +9,7 @@ import { Police } from './police.js';
 import { World } from './world.js';
 import { Player } from './player.js';
 import { Combat } from './combat.js';
-import { MISSIONS, nextMission } from './story.js';
+import { nextMission } from './story.js';
 import { useCrewAbility, tickCooldowns, buyCar, upgradeCar, deliverGarageCar } from './economy.js';
 import { Hud } from './hud.js';
 import { Traffic } from './traffic.js';
@@ -29,11 +25,11 @@ import { UI } from './ui.js';
 import { applyShot, runSelfTest } from './shots.js';
 import { saveGame, loadGame, hasSave } from './save.js';
 import { selectWeapon, cycleWeapon } from './weapons.js';
-import { G, resetState, clamp, dist2, formatMoney } from './state.js';
-import { TUNE, districtAt, carById, CREW, NPCS } from './config.js';
+import { G, resetState, clamp, dist2 } from './state.js';
+import { TUNE, CARS, STREETS, districtAt, carById } from './config.js';
 import { say, banner, notice, advanceDialogue, locationBanner } from './notify.js';
-import { makeVehicle, damageVehicle } from './vehicles.js';
-import { makeRng } from './random.js';
+import { damageVehicle, makeVehicle } from './vehicles.js';
+import { makeRng, pick, range } from './random.js';
 
 const params = new URLSearchParams(location.search);
 const SEED = parseInt(params.get('seed') || '7', 10);
@@ -87,7 +83,6 @@ const policeEvents = {
     }[reason] ?? (reason ? reason.toUpperCase() : '');
     banner(`WANTED LEVEL ${n}`, label, 3);
     audio.wantedUp();
-    dispatch.setCrime(reason === 'mission' ? 'mission' : 'theft');
   },
   onBusted() { busted(); },
   onRoadblock() { notice('Roadblock ahead — smash through or go around'); },
@@ -103,7 +98,6 @@ combat = new Combat(scene, world, effects, {
     if ((near || G.wanted > 0) && G.time - (combat._lastHeat || 0) > 6) {
       combat._lastHeat = G.time;
       police.addWanted(1, 'shots fired');
-      dispatch.setCrime('shooting');
     }
   },
   onExplosion(x, z) {
@@ -116,7 +110,6 @@ combat = new Combat(scene, world, effects, {
   onPedHit() {
     peds.panic();
     police.addWanted(1, 'assault');
-    dispatch.setCrime('assault');
   },
 });
 combat.onDamageVehicle = (v, dmg) => damageVehicle(v, dmg);
@@ -136,8 +129,8 @@ const ui = new UI({
   onQuitToTitle() { toTitle(); },
 });
 
-traffic.spawn(26, { x: G.playerX, z: G.playerZ });
-peds.spawn(42, { x: G.playerX, z: G.playerZ });
+traffic.spawn(34, { x: G.playerX, z: G.playerZ });
+peds.spawn(56, { x: G.playerX, z: G.playerZ });
 
 // ---- helpers ----
 let lastDistrict = null;
@@ -146,6 +139,14 @@ let modeTimer = 0;
 let deliveredCar = null;
 const parkedCars = []; // cars the player left behind; still enterable
 const extraVehicles = []; // scripted vehicles (burning wrecks, set dressing)
+
+// Parked cars line the curbs: static, enterable (F steals them).
+for (let i = 0; i < 14; i++) {
+  const s = pick(rng, STREETS), a = range(rng, -220, 220), d = rng() < 0.5 ? 7.3 : -7.3, x = rng() < 0.5;
+  const pv = makeVehicle(pick(rng, CARS), x ? a : s + d, x ? s + d : a, x ? Math.PI / 2 : 0, { npc: true, colorIndex: Math.floor(rng() * 4) });
+  scene.add(pv.mesh);
+  parkedCars.push(pv);
+}
 
 function damagePlayer(amount) {
   if (G.armor > 0) {
@@ -219,7 +220,7 @@ function startGame(fresh) {
     resetState(SEED);
     traffic.cars.forEach((v) => scene.remove(v.mesh));
     traffic.cars = [];
-    traffic.spawn(26, { x: G.playerX, z: G.playerZ });
+    traffic.spawn(34, { x: G.playerX, z: G.playerZ });
     player.reset(G.playerX, G.playerZ, G.heading);
     police.reset();
     missions.reset();
@@ -262,7 +263,6 @@ function tryEnterCar() {
     banner('VEHICLE STOLEN', near.def.name.toUpperCase(), 3);
     // stealing a car always gets reported — someone always sees
     police.addWanted(1, 'grand theft auto');
-    dispatch.setCrime('theft');
     return true;
   }
   for (const v of [...parkedCars]) {
@@ -307,9 +307,7 @@ function handleKeys() {
   if (input.wasPressed('KeyG')) openGarage();
   if (input.wasPressed('KeyR')) { radio.next(); notice('Radio: ' + radio.station.name); }
   if (input.wasPressed('KeyT')) callGarageCar();
-  if (input.wasPressed('KeyE')) {
-    if (!advanceDialogue()) { /* nothing to advance */ }
-  }
+  if (input.wasPressed('KeyE')) advanceDialogue();
   if (input.wasPressed('KeyQ')) cycleWeapon(1);
   for (let i = 0; i < 6; i++) {
     if (input.wasPressed('Digit' + (i + 1))) selectWeapon(i);
@@ -393,8 +391,7 @@ function updatePlaying(dt) {
   // slow health regen when the heat is off
   if (G.wanted === 0 && G.health > 0 && G.health < 100) G.health = Math.min(100, G.health + dt * 1.5);
 
-  // district banner — only on CHANGES, never on the first detection (the
-  // opening frame already has a job banner; two stacked titles read as noise)
+  // district banner — only on CHANGES (two stacked titles read as noise)
   const d = districtAt(player.x, player.z);
   if (!lastDistrict) {
     lastDistrict = d;
@@ -447,9 +444,7 @@ function loop() {
   requestAnimationFrame(loop);
   const dt = Math.min(clock.getDelta(), 0.05);
   G.time += dt; // game clock advances in every mode (busted/wasted timers need it)
-  // Escape / P work in EVERY mode: pausing stops updatePlaying, so these
-  // keys must be handled here, not in the in-game handler (or P could pause
-  // the game but never unpause it, and Escape could never close the garage)
+  // Escape / P work in EVERY mode, so they're handled here.
   if (input.wasPressed('Escape') || input.wasPressed('KeyP')) {
     if (G.mode === 'garage') closeGarage();
     else if (G.mode === 'playing') setPaused(!G.paused);

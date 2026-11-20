@@ -1,15 +1,19 @@
-// Police: the wanted system and the PBPD pursuit. Wanted stars rise when the
-// player commits crimes in sight of the law; police cars spawn, chase, ram
-// and PIT; roadblocks appear at 3 stars; the helicopter arrives at 4. Lose
-// the cops by breaking line of sight until the heat dies down.
+// Police: the wanted system and the PBPD pursuit. Stars rise when the
+// player commits crimes in sight of the law; lose the cops by breaking
+// line of sight until the heat dies down.
 
 import * as THREE from 'three';
-import { WANTED, POLICE_UNITS, TUNE } from './config.js';
+import { WANTED, POLICE_UNITS } from './config.js';
 import { G, clamp, dist2 } from './state.js';
 import { makeVehicle, driveVehicle, damageVehicle } from './vehicles.js';
 import { pick } from './random.js';
 
 const COP_CAR = { id: 'pbpd', name: 'PBPD Interceptor', kind: 'POLICE', top: 56, accel: 27, grip: 1.0, colors: [0xf0f0f0] };
+
+// Pursuit roles, assigned at spawn and kept until close combat: FLANK cuts
+// across the player's line, INTERCEPT aims ahead of the nose, RAM and PIT
+// only happen up close.
+const ROLES = ['PURSUE', 'PURSUE', 'FLANK', 'INTERCEPT'];
 
 export class Police {
   constructor(scene, world, rng, events) {
@@ -53,7 +57,7 @@ export class Police {
       if (dist2(p.x, p.z, px, pz) > 55) { x = p.x; z = p.z; break; }
     }
     const v = makeVehicle(COP_CAR, x, z, Math.atan2(px - x, pz - z),
-      { police: true, unitName: name, tactic: 'PURSUE' });
+      { police: true, unitName: name, tactic: pick(this.rng, ROLES) });
     v.target = { x: px, z: pz };
     this.units.push(v);
     this.scene.add(v.mesh);
@@ -131,12 +135,16 @@ export class Police {
         u.x = p.x; u.z = p.z;
       }
       if (u.tactic === 'ROADBLOCK') continue; // parked across the road
-      // pick a tactic by distance and wanted level
-      if (d < 14 && want >= 2) u.tactic = this.rng() < 0.5 ? 'RAM' : 'PIT';
-      else if (d < 45) u.tactic = 'PURSUE';
-      else u.tactic = 'PURSUE';
-      const aimX = u.tactic === 'PIT' ? px + Math.sin(G.heading || 0) * 4 : px;
-      const aimZ = u.tactic === 'PIT' ? pz + Math.cos(G.heading || 0) * 4 : pz;
+      // close combat: RAM or PIT, sticky once assigned; otherwise the unit
+      // keeps its spawn role
+      if (d < 14 && want >= 2 && u.tactic !== 'RAM' && u.tactic !== 'PIT') {
+        u.tactic = this.rng() < 0.5 ? 'RAM' : 'PIT';
+      }
+      const hd = G.heading || 0;
+      const lead = u.tactic === 'PIT' ? 4 : u.tactic === 'INTERCEPT' ? 14 : 0;
+      const side = u.tactic === 'FLANK' ? 9 : 0;
+      const aimX = px + Math.sin(hd) * lead + Math.cos(hd) * side;
+      const aimZ = pz + Math.cos(hd) * lead - Math.sin(hd) * side;
       const wantAngle = Math.atan2(aimX - u.x, aimZ - u.z);
       let diff = wantAngle - u.heading;
       while (diff > Math.PI) diff -= Math.PI * 2;

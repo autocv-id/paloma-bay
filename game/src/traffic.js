@@ -1,8 +1,7 @@
-// Traffic: civilian cars that cruise the street grid on fixed lanes, plus
-// simple avoidance so they do not pile into the player. Traffic cars are
-// carjackable — stealing one is how the player gets wheels.
+// Traffic: civilian cars that cruise the street grid, with simple avoidance
+// so they do not pile into the player. Traffic cars are carjackable.
 
-import { CARS, STREETS } from './config.js';
+import { CARS } from './config.js';
 import { makeVehicle, driveVehicle } from './vehicles.js';
 import { pick, range } from './random.js';
 
@@ -19,7 +18,8 @@ export class Traffic {
       const p = this.world.randomRoadPoint(this.rng);
       if (near && Math.hypot(p.x - near.x, p.z - near.z) < 25) continue;
       const def = pick(this.rng, CARS);
-      const v = makeVehicle(def, p.x, p.z, p.heading, { npc: true, colorIndex: Math.floor(this.rng() * 3) });
+      const v = makeVehicle(def, p.x, p.z, p.heading, { npc: true, colorIndex: Math.floor(this.rng() * 4) });
+      v.cruise = range(this.rng, 0.4, 0.7); // varied speeds, not one cruise
       v.target = this.nextTarget(p.x, p.z, p.heading);
       this.cars.push(v);
       this.scene.add(v.mesh);
@@ -57,7 +57,7 @@ export class Traffic {
       const steer = Math.max(-1, Math.min(1, diff * 2.2));
       // slow near the player so traffic feels alive, not suicidal
       const pd = Math.hypot(playerX - v.x, playerZ - v.z);
-      const throttle = pd < 9 ? 0.15 : 0.55;
+      const throttle = pd < 9 ? 0.15 : (v.cruise || 0.55);
       driveVehicle(v, throttle, steer, dt, (x, z, r) => this.world.collide(x, z, r));
       // recycle far-away cars near the player to keep the streets busy
       if (Math.hypot(v.x - playerX, v.z - playerZ) > 320) {

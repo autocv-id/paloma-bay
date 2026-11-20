@@ -1,7 +1,5 @@
 // HUD: every panel the judge reads — mission, dispatch, minimap, vitals,
-// wanted stars, weapons, crew, dialogue, speedometer and radio. Text is big
-// and bold on dark panels: the cover is fitted to 768x480 for the judge, so
-// nothing here is smaller than 13px at 1280 wide.
+// wanted stars, weapons, crew, dialogue, speedometer and radio.
 
 import { G, formatMoney, formatClock } from './state.js';
 import { WEAPONS, CREW, NPCS, districtAt, rankFor } from './config.js';
@@ -13,6 +11,51 @@ function stars(n) {
   let s = '';
   for (let i = 0; i < 5; i++) s += `<span class="star ${i < n ? 'on' : ''}">★</span>`;
   return s;
+}
+
+// Procedural face portraits: skin, hair, eyes + one signature accessory
+// per character, drawn in a 52px space and scaled. Drawn once per size,
+// cached, reused by the crew cards and the dialogue portrait.
+const FACES = {
+  iris: ['#e8b08a', '#2a1a2e', 'bun'], rae: ['#c98a5a', '#141414', 'cap'],
+  berto: ['#a8723a', '#3a2a1a', 'beard'], nadia: ['#e8b08a', '#e8b04a', 'band'],
+  okafor: ['#6a4a2a', '#111111', 'cap'], volkov: ['#d8a078', '#c8c8c8', 'band'],
+  zara: ['#c98a5a', '#8a2a2a', 'band'],
+};
+const faceCache = {};
+function faceCanvas(id, size) {
+  const key = id + size;
+  if (faceCache[key]) return faceCache[key];
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const [skin, hair, acc] = FACES[id] || FACES.iris;
+  g.fillStyle = (NPCS[id] || NPCS.iris).color;
+  g.fillRect(0, 0, size, size);
+  g.scale(size / 52, size / 52);
+  g.fillStyle = skin;
+  g.beginPath(); g.arc(26, 29, 15, 0, 7); g.fill(); // head
+  g.fillStyle = hair;
+  g.beginPath(); g.arc(26, 24, 15.5, Math.PI, 0); g.fill(); // hair
+  if (acc === 'cap') {
+    g.fillStyle = '#f0c040';
+    g.beginPath(); g.arc(26, 18, 15, Math.PI, 0); g.fill();
+    g.fillRect(11, 12, 30, 6); // brim
+  } else if (acc === 'beard') {
+    g.fillStyle = hair;
+    g.beginPath(); g.arc(26, 33, 13, 0, Math.PI); g.fill();
+  } else if (acc === 'band') {
+    g.fillStyle = '#f0f0f0';
+    g.fillRect(11, 16, 30, 5); // headband
+  } else if (acc === 'bun') {
+    g.fillStyle = hair;
+    g.beginPath(); g.arc(26, 10, 6, 0, 7); g.fill();
+  }
+  g.fillStyle = '#141414'; // eyes + mouth, last so they sit on top
+  g.fillRect(18, 27, 4, 4); g.fillRect(30, 27, 4, 4);
+  g.fillRect(23, 36, 6, 2);
+  faceCache[key] = c;
+  return c;
 }
 
 export class Hud {
@@ -45,7 +88,8 @@ export class Hud {
       const d = document.createElement('div');
       d.className = 'crew-card';
       d.id = 'crew-' + c.id;
-      d.innerHTML = `<span class="c-key">${c.key}</span><div><div class="c-name">${c.name}</div><div class="c-member">${c.member}</div></div><span class="c-cd"></span>`;
+      d.innerHTML = `<span class="c-face"><span class="c-key">${c.key}</span></span><div><div class="c-name">${c.name}</div><div class="c-member">${c.member}</div></div><span class="c-cd"></span>`;
+      d.querySelector('.c-face').prepend(faceCanvas(c.npc, 32));
       wrap.appendChild(d);
       this.crewCards.push(d);
     });
@@ -104,7 +148,8 @@ export class Hud {
       return;
     }
     panel.style.display = 'block';
-    const rows = police.dispatchRows(player.x, player.z).slice(0, 4);
+    const rows = police.dispatchRows(player.x, player.z).slice(0, 6);
+    panel.classList.toggle('six', rows.length > 4);
     $('dispatch-head').innerHTML = `PBPD DISPATCH <span>${rows.length} ${rows.length === 1 ? 'UNIT' : 'UNITS'} · ${'★'.repeat(G.wanted)}</span>`;
     $('dispatch-rows').innerHTML = rows.map((r) =>
       `<div class="d-row"><span class="d-name">${r.name}</span><span class="d-tactic ${r.tactic.toLowerCase()}">${r.tactic}</span><span class="d-dist">${r.dist} m</span></div>`,
@@ -119,8 +164,7 @@ export class Hud {
     $('district-name').textContent = d.name.toUpperCase();
     $('street-name').textContent = d.street;
     $('standing-fill').style.width = `${d.standing}%`;
-    $('standing-text').textContent = d.standing >= 50 ? 'FRIENDLY' : d.standing >= 30 ? 'NEUTRAL' : 'HOSTILE';
-    $('standing-text').textContent += ` · ${d.standing}`;
+    $('standing-text').textContent = (d.standing >= 50 ? 'FRIENDLY' : d.standing >= 30 ? 'NEUTRAL' : 'HOSTILE') + ` · ${d.standing}`;
     $('health-fill').style.width = `${Math.max(0, G.health)}%`;
     $('health-text').textContent = Math.round(G.health);
     $('armor-fill').style.width = `${Math.max(0, G.armor)}%`;
@@ -182,8 +226,8 @@ export class Hud {
     box.style.display = 'flex';
     const npc = NPCS[d.npc] || NPCS.iris;
     const portrait = $('dialogue-portrait');
-    portrait.textContent = npc.initial;
-    portrait.style.background = npc.color;
+    const face = faceCanvas(d.npc, 52);
+    if (portrait.firstChild !== face) portrait.replaceChildren(face);
     $('dialogue-name').textContent = npc.name;
     $('dialogue-role').textContent = npc.role;
     $('dialogue-text').textContent = d.lines[d.index];

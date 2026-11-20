@@ -39,12 +39,6 @@ export class Radio {
     this.timer = setInterval(() => this.schedule(), 120);
   }
 
-  stop() {
-    this.playing = false;
-    if (this.timer) clearInterval(this.timer);
-    this.timer = null;
-  }
-
   setStation(i) {
     G.radioStation = ((i % RADIO.length) + RADIO.length) % RADIO.length;
     this.step = 0;

@@ -6,28 +6,32 @@ import * as THREE from 'three';
 import { WANTED, HELI_CALLSIGN } from './config.js';
 import { G } from './state.js';
 
-// The heli flies low enough to stay in the chase camera's frame (the old
-// 42 m put it above the top edge) and big enough to read at 25 m.
-const ALT = 15;
+// The heli flies low (12 m) so it stays in the chase camera's frame and
+// big enough to read at 25 m — the air pursuit reads in the cover frame.
+const ALT = 12;
 const BODY_SCALE = 1.5;
 
 export class Helicopter {
   constructor(scene) {
     this.scene = scene;
     this.mesh = null;
-    this.spot = null;
     this.active = false;
+    this.staged = false; // a shot can force a patrol flight with no wanted level
     this.angle = 0;
     this.x = 0; this.z = 0;
+    // Orbit geometry (instance fields so a shot can stage them): the heli
+    // circles a point `orbitLead` metres ahead of the player's nose.
+    this.orbitRadius = 16;
+    this.orbitLead = 20;
     this.build();
   }
 
   build() {
     const g = new THREE.Group();
     // airframe in its own sub-group so it can be scaled without stretching
-    // the spotlight cone (the cone's length must equal the flight altitude)
+    // the spotlight cone (the cone's length must equal the altitude)
     const bodyG = new THREE.Group();
-    const bodyMat = new THREE.MeshLambertMaterial({ color: 0x2a6ae0 });
+    const bodyMat = new THREE.MeshLambertMaterial({ color: 0xe8ecf0 });
     const darkMat = new THREE.MeshLambertMaterial({ color: 0x14181f });
     const body = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.6, 5.2), bodyMat);
     body.castShadow = true;
@@ -49,8 +53,6 @@ export class Helicopter {
     bodyG.scale.setScalar(BODY_SCALE);
     g.add(bodyG);
     g.userData.rotors = [rotor, rotor2];
-    // spotlight cone (additive, see-through): apex at the heli, base on the
-    // ground directly below, so the light pool lands on the player
     const coneGeo = new THREE.ConeGeometry(7, ALT, 16, 1, true);
     const coneMat = new THREE.MeshBasicMaterial({
       color: 0xfff2b0, transparent: true, opacity: 0.18,
@@ -71,14 +73,14 @@ export class Helicopter {
   }
 
   update(dt, px, pz, heading = 0) {
-    const want = G.wanted >= WANTED.heliAt && !G.car?.burnt;
+    const want = (G.wanted >= WANTED.heliAt || this.staged) && !G.car?.burnt;
     if (want && !this.active) {
       this.active = true;
       this.mesh.visible = true;
-      // arrive ahead of the player, where the chase camera can see it
+      // arrive at the orbit ahead of the player, already settled
       const fx = Math.sin(heading), fz = Math.cos(heading);
-      this.x = px + fx * 20 + 12;
-      this.z = pz + fz * 20;
+      this.x = px + fx * this.orbitLead + 25;
+      this.z = pz + fz * this.orbitLead;
       this.angle = Math.atan2(px - this.x, pz - this.z);
     } else if (!want && this.active) {
       this.active = false;
@@ -86,19 +88,17 @@ export class Helicopter {
     }
     if (!this.active) return;
     this.angle += dt * 0.35;
-    // Circle a point ahead of the player's nose (lead 20 m, radius 16 m),
-    // so the heli stays in front of the chase camera instead of trailing
-    // behind it — and fly there at 45 m/s so it keeps up with a fast car.
+    // Circle the lead point at 45 m/s, so it keeps up with a fast car.
     const fx = Math.sin(heading), fz = Math.cos(heading);
-    const cx = px + fx * 20, cz = pz + fz * 20;
-    const tx = cx + Math.cos(this.angle) * 16;
-    const tz = cz + Math.sin(this.angle) * 16;
+    const cx = px + fx * this.orbitLead, cz = pz + fz * this.orbitLead;
+    const tx = cx + Math.cos(this.angle) * this.orbitRadius;
+    const tz = cz + Math.sin(this.angle) * this.orbitRadius;
     const dx = tx - this.x, dz = tz - this.z;
     const d = Math.hypot(dx, dz) || 1;
     const step = Math.min(d, 45 * dt);
     this.x += (dx / d) * step;
     this.z += (dz / d) * step;
-    const y = ALT + Math.sin(performance.now() / 900) * 1.5;
+    const y = ALT + Math.sin(performance.now() / 900) * 0.5;
     this.mesh.position.set(this.x, y, pz + (this.z - pz));
     this.mesh.position.z = this.z;
     this.mesh.rotation.y = Math.atan2(px - this.x, pz - this.z);

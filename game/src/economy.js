@@ -1,23 +1,15 @@
-// Economy: money, respect, ranks, crew abilities and the garage. Crew
-// abilities are real buttons with real cooldowns — Swap Plates drops two
-// wanted stars, Quick Fix repairs the car, Eyes Out reveals police.
+// Economy: money, respect, ranks, crew abilities and the garage.
 
 import { RANKS, CREW, CARS, carById, rankFor } from './config.js';
 import { G } from './state.js';
 import { repairVehicle } from './vehicles.js';
 import { notice, banner } from './notify.js';
 
-export function rank() { return RANKS[rankFor(G.rp)]; }
 export function rankProgress() {
   const r = rankFor(G.rp);
   const cur = RANKS[r].rp;
   const next = RANKS[r + 1] ? RANKS[r + 1].rp : cur + 1;
   return { rank: r, name: RANKS[r].name, into: G.rp - cur, need: next - cur };
-}
-
-export function addReward(money, rp) {
-  G.money += money;
-  G.rp += rp;
 }
 
 export function useCrewAbility(id, police) {

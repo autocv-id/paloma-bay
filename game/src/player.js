@@ -1,35 +1,51 @@
 // The player: on-foot movement with a visible low-poly character, entering
-// and exiting cars, and carjacking — stealing a traffic car in sight of the
-// police raises the wanted level, exactly as the mission text promises.
+// and exiting cars, and carjacking.
 
 import * as THREE from 'three';
 import { TUNE, carById } from './config.js';
-import { G, clamp, dist2 } from './state.js';
+import { G, clamp } from './state.js';
 import { makeVehicle, driveVehicle, vehicleSpeedKmh } from './vehicles.js';
+
+// A limb hanging from a pivot at the joint: rotating the group swings it.
+export function limbPivot(g, w, h, d, mat, x, y) {
+  const p = new THREE.Group();
+  p.position.set(x, y, 0);
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.y = -h / 2;
+  p.add(m);
+  g.add(p);
+  return p;
+}
 
 function buildPlayerMesh() {
   const g = new THREE.Group();
   const jacket = new THREE.MeshLambertMaterial({ color: 0x2a9e8a });
   const skin = new THREE.MeshLambertMaterial({ color: 0xc89868 });
   const pants = new THREE.MeshLambertMaterial({ color: 0x243040 });
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.9, 0.4), jacket);
-  body.position.y = 1.1;
+  const shoe = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.85, 0.38), jacket);
+  body.position.y = 1.18;
   body.castShadow = true;
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.44, 0.44), skin);
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), skin);
   head.position.y = 1.8;
   head.castShadow = true;
-  const cap = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.16, 0.5),
-    new THREE.MeshLambertMaterial({ color: 0xf0c040 }));
-  cap.position.y = 2.02;
-  const legL = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.66, 0.3), pants);
-  legL.position.set(-0.18, 0.33, 0);
-  const legR = legL.clone();
-  legR.position.x = 0.18;
-  const armL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.7, 0.26), jacket);
-  armL.position.set(-0.46, 1.1, 0);
-  const armR = armL.clone();
-  armR.position.x = 0.46;
-  g.add(body, head, cap, legL, legR, armL, armR);
+  // Kade's yellow cap: crown + a forward brim, his signature at any range.
+  const capMat = new THREE.MeshLambertMaterial({ color: 0xf0c040 });
+  const crown = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.14, 0.46), capMat);
+  crown.position.y = 2.02;
+  const brim = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.24), capMat);
+  brim.position.set(0, 1.96, 0.3);
+  const legL = limbPivot(g, 0.24, 0.75, 0.28, pants, -0.17, 0.78);
+  const legR = limbPivot(g, 0.24, 0.75, 0.28, pants, 0.17, 0.78);
+  const armL = limbPivot(g, 0.2, 0.68, 0.24, jacket, -0.42, 1.55);
+  const armR = limbPivot(g, 0.2, 0.68, 0.24, jacket, 0.42, 1.55);
+  // Shoes: dark toe boxes at the end of each leg, so the stride reads.
+  for (const leg of [legL, legR]) {
+    const s = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.12, 0.42), shoe);
+    s.position.set(0, -0.72, 0.06);
+    leg.add(s);
+  }
+  g.add(body, head, crown, brim);
   g.userData.legs = [legL, legR];
   g.userData.arms = [armL, armR];
   return g;
