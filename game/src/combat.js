@@ -1,5 +1,4 @@
-// Combat: hitscan shooting on foot, melee, explosions and burning wrecks.
-// Shooting is a ray from the camera through the crosshair.
+// Combat: hitscan shooting on foot, melee, explosions, burning wrecks.
 
 import * as THREE from 'three';
 import { G } from './state.js';

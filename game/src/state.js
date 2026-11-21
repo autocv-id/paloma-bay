@@ -1,6 +1,5 @@
-// Shared game state: one object every system reads and writes. The state is
-// plain data so save/load can snapshot it, and the screenshot scenarios can
-// set it up deterministically.
+// Shared game state: one plain-data object every system reads and writes,
+// so save/load can snapshot it and scenarios can set it up.
 
 import { TUNE, WEAPONS } from './config.js';
 
@@ -18,7 +17,11 @@ function freshState() {
     rp: TUNE.startRp,
     missionsDone: [], // mission ids completed
     mission: null, // active mission runtime (see missions.js)
-    missionIndex: 0, // next story mission to offer
+    // career stats (pause menu)
+    carsStolen: 0,
+    copsEvaded: 0,
+    drivenKm: 0,
+    bestWanted: 0,
 
     // player
     health: 100,
@@ -31,7 +34,6 @@ function freshState() {
 
     // wanted / police
     wanted: 0,
-    evadeTimer: 0,
     unseenTimer: 0,
     bustTimer: 0,
     eyesOutUntil: 0,
@@ -62,7 +64,6 @@ function freshState() {
 
     // debug / screenshots
     shot: null, // ?shot= scenario name
-    selftest: false,
     errors: [], // console errors captured during selftest
   };
 }

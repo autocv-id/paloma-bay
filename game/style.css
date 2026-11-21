@@ -76,16 +76,16 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #10141f; fon
 #sight-text.evading { color: #7dff9a; }
 
 /* right column: weapons + crew */
-#right-col { position: absolute; right: 14px; top: 164px; width: 205px; }
-#weapons { display: flex; flex-direction: column; gap: 5px; }
-.weapon-slot { display: flex; align-items: center; gap: 8px; background: rgba(12,16,26,0.78); border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 6px 9px; font-size: 14px; }
+#right-col { position: absolute; right: 14px; top: 150px; width: 205px; }
+#weapons { display: flex; flex-direction: column; gap: 4px; }
+.weapon-slot { display: flex; align-items: center; gap: 8px; background: rgba(12,16,26,0.78); border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 4px 9px; font-size: 14px; }
 .weapon-slot.active { border-color: #ffd24d; background: rgba(60,50,10,0.85); }
 .weapon-slot.locked { opacity: 0.45; }
 .w-key { font-size: 11px; font-weight: 900; color: #8fa8c8; background: rgba(255,255,255,0.12); border-radius: 3px; padding: 1px 5px; }
 .w-name { font-weight: 900; flex: 1; }
 .w-ammo { color: #ffd24d; font-weight: bold; }
-#crew { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
-.crew-card { display: flex; align-items: center; gap: 8px; background: rgba(12,16,26,0.78); border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 6px 9px; }
+#crew { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.crew-card { display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; row-gap: 2px; background: rgba(12,16,26,0.78); border: 1px solid rgba(255,255,255,0.14); border-radius: 6px; padding: 5px 9px; }
 .crew-card.ready { border-color: #7ad8a0; }
 .c-key { font-size: 12px; font-weight: 900; color: #111; background: #ffd24d; border-radius: 3px; padding: 2px 6px; }
 .c-face { position: relative; width: 32px; height: 32px; flex-shrink: 0; }
@@ -127,6 +127,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #10141f; fon
 #location-banner-name { font-size: 40px; font-weight: 900; letter-spacing: 6px; }
 #location-banner-street { font-size: 16px; letter-spacing: 4px; color: #ffd24d; }
 #notice { position: absolute; bottom: 300px; left: 50%; transform: translateX(-50%); background: rgba(12,16,26,0.85); padding: 8px 16px; border-radius: 6px; font-size: 15px; font-weight: bold; white-space: nowrap; }
+#enter-prompt { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); background: rgba(12,16,26,0.85); border: 1px solid rgba(255,210,77,0.6); padding: 8px 16px; border-radius: 6px; font-size: 17px; font-weight: 900; letter-spacing: 1px; color: #ffd24d; white-space: nowrap; }
+#mission-pay { color: #7dff9a; font-weight: 900; font-size: 14px; margin-top: 2px; }
+#career-panel { font-size: 13px; color: #8fa8c8; line-height: 1.7; margin-top: 6px; }
+.c-stats { width: 100%; font-size: 10px; color: #8fa8c8; }
 #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; font-weight: 100; color: rgba(255,255,255,0.9); text-shadow: 0 0 6px #000; }
 #hint { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); font-size: 11px; color: rgba(255,255,255,0.55); white-space: nowrap; }
 

@@ -13,9 +13,8 @@ export function applyShot(name, ctx) {
   const { player, police, missions, traffic, cameraRig, ui } = ctx;
   G.shot = name;
   if (name === 'chase') {
-    // COVER: FRONT three-quarter view — the camera sits ahead of the hero
-    // car looking back (yawOffset ~PI + 0.6 keeps the sunlit flank + front
-    // in one frame), police pursuit visible BEHIND the hero car.
+    // COVER: FRONT three-quarter view — camera ahead of the hero car,
+    // police pursuit visible BEHIND it.
     G.clock = 12.5; G.day = 9;
     G.money = 18450; G.rp = 3900; G.health = 72; G.armor = 55;
     G.missionsDone = MISSIONS.slice(0, 9).map((m) => m.id);
@@ -29,10 +28,8 @@ export function applyShot(name, ctx) {
     car.condition = 62;
     ctx.scene.add(car.mesh);
     player.enterCar(car);
-    // Police BEHIND the player (south): from the front camera they read
-    // as the pursuit closing in, light bars past the hero car. Six units
-    // with distinct roles — the nearest (12 m) earns RAM or PIT from the
-    // close-combat rule, the rest keep their staged tactics.
+    // Six police BEHIND the player (south): the pursuit closing in.
+    // The nearest (12 m) earns RAM or PIT; the rest keep staged tactics.
     police.spawnTimer = 999; // the six staged units are the whole pursuit
     const formation = [
       [192, 91], [206, 98], [192, 112], [200, 128], [196, 148], [190, 168],
@@ -60,32 +57,30 @@ export function applyShot(name, ctx) {
     // Walkers on the beach-side sidewalk, in frame (south of the car).
     ctx.peds.spawnAt(207, 100, Math.PI, { x: 207, z: -40 });
     ctx.peds.spawnAt(207, 130, Math.PI, { x: 207, z: -70 });
-    // A parked scooter on the beach-side sidewalk: the second vehicle
-    // type, in frame-left by the palms.
+    // A parked scooter on the sidewalk: the second vehicle type.
     const scooter = makeVehicle(carById('gull-scooter'), 208, 95, Math.PI / 2, { npc: true, colorIndex: 0 });
     ctx.scene.add(scooter.mesh);
     ctx.extraVehicles.push(scooter);
-    // Heli BEHIND the player (negative lead): from the front camera it
-    // hangs over the pursuit, body + cone in the upper frame.
+    // Heli BEHIND the player (negative lead): body + cone in the upper frame.
     ctx.heli.orbitRadius = 6;
     ctx.heli.orbitLead = -22;
     cameraRig.yawOffset = Math.PI + 0.6;
     cameraRig.snapTo(196, 80, Math.PI);
   } else if (name === 'foot') {
-    // CROWDED BEACH (round 9): Kade on the sand facing NORTH along the
-    // shore — ocean right, ferris wheel ahead-left, beachfront skyline
-    // far left. The crowd is the point: 51 walkers + umbrellas + towels
-    // show a living beach, not an empty postcard.
+    // CROWDED BEACH: Kade on the sand facing NORTH — 51 walkers +
+    // umbrellas + towels show a living beach, not an empty postcard.
     G.clock = 12.0; G.day = 3;
     G.money = 6420; G.rp = 1400; G.health = 100; G.armor = 0;
     missions.startMission(MISSIONS[0]);
     player.reset(285, 0, Math.PI);
-    // Beach crowd: 51 walkers in beach variants, packed in clusters of
-    // 2-3 around the camera axis — near rows narrow (the frame is only
-    // ~19 m wide 10 m out), far rows wider for depth. A third 1 means
-    // the walker strolls SOUTH toward the camera, like the reference's
-    // foreground walkers. All stroll at 0.4 m/s so the formation holds
-    // through the 75 s shutter (never 150 s: staged peds vanish).
+    // A parked scooter beside Kade: the enter prompt reads in the frame.
+    const beachScooter = makeVehicle(carById('gull-scooter'), 287, -2, Math.PI / 2, { npc: true, colorIndex: 1 });
+    ctx.scene.add(beachScooter.mesh);
+    ctx.parkedCars.push(beachScooter);
+    // 51 walkers in clusters of 2-3 around the camera axis — near rows
+    // narrow (the frame is only ~19 m wide 10 m out), far rows wider.
+    // A third 1 = strolls SOUTH toward the camera. 0.4 m/s holds the
+    // formation through the 75 s shutter (never 150 s: staged peds vanish).
     const crowd = [[277,-4],[280,-4],[290,-4],[293,-4],[274,-9],[277,-9],[286,-9],[289,-9],[296,-9],[268,-15],[271,-15],[280,-15,1],[283,-15],[292,-15,1],[295,-15],[300,-15],[264,-22],[267,-22],[277,-22,1],[280,-22],[289,-22],[292,-22,1],[301,-22],[304,-22],[260,-30],[263,-30],[273,-30],[276,-30,1],[286,-30],[289,-30,1],[299,-30],[302,-30],[310,-30],[258,-40],[261,-40],[272,-40],[275,-40],[286,-40],[289,-40],[300,-40],[303,-40],[313,-40],[260,-52],[274,-52],[288,-52],[302,-52],[314,-52],[264,-66],[282,-66],[300,-66],[316,-66]];
     for (const [px, pz, sb] of crowd) {
       const p = ctx.peds.spawnAt(px, pz, sb ? 0 : Math.PI, { x: px, z: pz + (sb ? 130 : -130) }, true);
@@ -111,8 +106,7 @@ export function applyShot(name, ctx) {
       tw.rotation.y = ci * 0.5;
       ctx.scene.add(tw);
     }
-    // Patrol heli over the beach: staged (not wanted-driven), so it reads
-    // in the sky without stars or police. Orbits 80 m ahead of the player.
+    // Patrol heli (staged, not wanted-driven): orbits 80 m ahead.
     ctx.heli.staged = true;
     ctx.heli.orbitRadius = 25;
     ctx.heli.orbitLead = 80;
@@ -135,9 +129,8 @@ export function applyShot(name, ctx) {
     G.mode = 'garage';
     cameraRig.snapTo(140, -120, Math.PI / 2);
   } else if (name === 'night') {
-    // Night shootout on the BOULEVARD, facing north: the CORAL CLUB +
-    // PIER 9 neon billboards read on the right, palms + beach beyond,
-    // 5 stars, helicopter, burning car, SMG.
+    // Night shootout on the BOULEVARD, facing north: CORAL CLUB + PIER 9
+    // neon right, 5 stars, helicopter, burning car, SMG.
     G.clock = 21.6; G.day = 5;
     G.money = 12400; G.rp = 2600; G.health = 84; G.armor = 40;
     G.weaponIndex = 2;

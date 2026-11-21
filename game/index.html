@@ -22,6 +22,7 @@
     <div id="mission-stage"><div id="mission-stage-fill"></div><span id="mission-stage-text"></span></div>
     <div id="mission-next"></div>
     <div id="mission-timer"></div>
+    <div id="mission-pay"></div>
   </div>
 
   <!-- police dispatch -->
@@ -86,8 +87,9 @@
   <div id="banner" style="display:none"><div id="banner-text"></div><div id="banner-sub"></div></div>
   <div id="location-banner" style="display:none"><div id="location-banner-name"></div><div id="location-banner-street"></div></div>
   <div id="notice" style="display:none"></div>
+  <div id="enter-prompt" style="display:none"></div>
   <div id="crosshair" style="display:none">+</div>
-  <div id="hint">WASD drive / walk · F enter car · M job · G garage · R radio · Z/X/C crew · P pause</div>
+  <div id="hint">WASD drive / walk · F enter car · M job · G garage · R radio · V camera · Z/X/C crew · P pause</div>
 </div>
 
 <!-- title screen -->
@@ -106,7 +108,7 @@
     <div id="howto-panel" class="info-panel" style="display:none">
       <b>WASD</b> drive / walk &nbsp;·&nbsp; <b>Mouse</b> look &nbsp;·&nbsp; <b>Click</b> shoot &nbsp;·&nbsp; <b>F</b> enter / exit car<br>
       <b>Space</b> handbrake &nbsp;·&nbsp; <b>Shift</b> run &nbsp;·&nbsp; <b>E</b> talk &nbsp;·&nbsp; <b>1–6</b> weapons &nbsp;·&nbsp; <b>Q</b> cycle weapon<br>
-      <b>M</b> next job &nbsp;·&nbsp; <b>G</b> garage &nbsp;·&nbsp; <b>T</b> call garage car &nbsp;·&nbsp; <b>R</b> radio &nbsp;·&nbsp; <b>Z/X/C</b> crew abilities &nbsp;·&nbsp; <b>P</b> pause
+      <b>M</b> next job &nbsp;·&nbsp; <b>G</b> garage &nbsp;·&nbsp; <b>T</b> call garage car &nbsp;·&nbsp; <b>R</b> radio &nbsp;·&nbsp; <b>V</b> camera &nbsp;·&nbsp; <b>Z/X/C</b> crew abilities &nbsp;·&nbsp; <b>P</b> pause
     </div>
     <div id="about-panel" class="info-panel" style="display:none">
       <b>PALOMA BAY</b> is a complete open-world crime game in your browser: a sun-soaked coastal city to explore on foot
@@ -128,6 +130,7 @@
     <button id="btn-garage">GARAGE</button>
     <button id="btn-radio">NEXT RADIO STATION</button>
     <button id="btn-quit">QUIT TO TITLE</button>
+    <div id="career-panel"></div>
   </div>
 </div>
 

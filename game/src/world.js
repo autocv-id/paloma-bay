@@ -68,7 +68,7 @@ function glowTexture(inner, outer) {
 const DUSK_SUN_DIR = new THREE.Vector3(-0.96, 0.24, -0.16);
 const NOON_SUN_DIR = new THREE.Vector3(-0.45, 0.8, -0.2);
 
-// One grade per phase of the day — sun, sky, fog, light, window glow and
+// One grade per phase of the day.
 const PHASES = {
   night: { sun: 0x8a9ac8, si: 0.5, sp: [120, 160, 60], top: 0x0e1430, mid: 0x1a2448, hor: 0x2a3358, fog: 0x1a2438, hc: 0x8a9ac8, hg: 0x3a3a48, hi: 0.35, em: 1.15, dir: null },
   dusk: { sun: 0xff9040, si: 2.6, sp: [-220, 55, -40], top: 0x5a3578, mid: 0xd06090, hor: 0xff9a4d, fog: 0xeab0a8, hc: 0xffc8b8, hg: 0x7a5a48, hi: 1.2, em: 0.9, dir: DUSK_SUN_DIR },
@@ -168,8 +168,7 @@ export class World {
     this.sunGlow.scale.set(460, 460, 1);
     this.sunGlow.frustumCulled = false;
     scene.add(this.sunGlow);
-    // White clouds: soft billboard puffs, day phase only — a bright
-    // midday sky needs them to read as a tropical postcard, not a void.
+    // White clouds: day phase only.
     const cloudTex = glowTexture('rgba(255,255,255,0.95)', 'rgba(255,255,255,0)');
     this.clouds = [];
     for (const [cx, cy, cz, s] of [[300, 340, 520, 330], [520, 300, 180, 270], [120, 380, 680, 300], [-260, 330, 580, 290], [640, 360, -120, 320], [500, 130, -60, 260]]) {
@@ -304,8 +303,7 @@ export class World {
       this.neonMats.push(mat);
       scene.add(sign);
     }
-    // Low neon billboards on the beach side, at 4 m: below the palm canopy
-    // and above the beach furniture, so they read 50-100 m ahead.
+    // Low neon billboards on the beach side, at 4 m.
     const postMat = new THREE.MeshLambertMaterial({ color: 0x2a2e38 });
     for (const s of [
       { text: 'CORAL CLUB', color: '#ff4dd8', z: -20 },

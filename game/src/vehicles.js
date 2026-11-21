@@ -1,6 +1,5 @@
-// Vehicles: low-poly car meshes and the arcade driving model shared by the
-// player, traffic and police. Every car is built from boxes, cylinders and
-// emissive lights — no loaded models.
+// Vehicles: low-poly car meshes + the arcade driving model shared by the
+// player, traffic and police. No loaded models.
 
 import * as THREE from 'three';
 import { clamp } from './state.js';
@@ -69,8 +68,8 @@ function buildCarMesh(carDef, opts = {}) {
   const cabY = top + S.ch / 2; // cabin centre
   const hl = S.l / 2; // half length
   if (carDef.kind === 'SCOOTER') {
-    // Scooter: deck, sloped shield, seat, handlebar, headlight, two small
-    // wheels. It drives like a car (same makeVehicle/driveVehicle).
+    // Scooter: deck, shield, seat, handlebar, two small wheels. It drives
+    // like a car (same makeVehicle/driveVehicle).
     box(0.5, 0.14, 1.5, paint, 0, 0.38, 0); // deck
     box(0.55, 0.5, 0.35, paint, 0, 0.72, 0.55, -0.3); // front shield
     box(0.5, 0.12, 0.65, wheelMat, 0, 0.78, -0.45); // seat

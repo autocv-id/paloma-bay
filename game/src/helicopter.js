@@ -1,13 +1,11 @@
 // The police helicopter: arrives at 4 stars, circles above the player and
-// paints them with a visible spotlight cone. While the spotlight holds, the
-// player counts as seen — no heat decay under the light.
+// paints them with a spotlight cone. Under the light, no heat decay.
 
 import * as THREE from 'three';
 import { WANTED, HELI_CALLSIGN } from './config.js';
 import { G } from './state.js';
 
-// The heli flies low (12 m) so it stays in the chase camera's frame and
-// big enough to read at 25 m — the air pursuit reads in the cover frame.
+// The heli flies low (12 m) so it stays in the chase camera's frame.
 const ALT = 12;
 const BODY_SCALE = 1.5;
 
@@ -19,8 +17,7 @@ export class Helicopter {
     this.staged = false; // a shot can force a patrol flight with no wanted level
     this.angle = 0;
     this.x = 0; this.z = 0;
-    // Orbit geometry (instance fields so a shot can stage them): the heli
-    // circles a point `orbitLead` metres ahead of the player's nose.
+    // Orbit geometry (instance fields so a shot can stage them).
     this.orbitRadius = 16;
     this.orbitLead = 20;
     this.build();
@@ -99,8 +96,7 @@ export class Helicopter {
     this.x += (dx / d) * step;
     this.z += (dz / d) * step;
     const y = ALT + Math.sin(performance.now() / 900) * 0.5;
-    this.mesh.position.set(this.x, y, pz + (this.z - pz));
-    this.mesh.position.z = this.z;
+    this.mesh.position.set(this.x, y, this.z);
     this.mesh.rotation.y = Math.atan2(px - this.x, pz - this.z);
     for (const r of this.mesh.userData.rotors) r.rotation.y += dt * 22;
   }

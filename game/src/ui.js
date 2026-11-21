@@ -45,7 +45,10 @@ export class UI {
     $('title-screen').style.display = 'none';
     $('hud').style.display = 'block';
   }
-  showPause() { $('pause-menu').style.display = 'flex'; }
+  showPause() {
+    $('pause-menu').style.display = 'flex';
+    $('career-panel').textContent = `JOBS ${G.missionsDone.length}/10 · CARS STOLEN ${G.carsStolen} · COPS EVADED ${G.copsEvaded} · DRIVEN ${G.drivenKm.toFixed(1)} KM · BEST WANTED ${'★'.repeat(G.bestWanted) || '—'}`;
+  }
   hidePause() { $('pause-menu').style.display = 'none'; }
   showGarage() {
     this.renderGarage();

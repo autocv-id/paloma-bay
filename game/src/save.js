@@ -12,7 +12,10 @@ export function saveGame() {
       money: G.money,
       rp: G.rp,
       missionsDone: G.missionsDone,
-      missionIndex: G.missionIndex,
+      carsStolen: G.carsStolen,
+      copsEvaded: G.copsEvaded,
+      drivenKm: G.drivenKm,
+      bestWanted: G.bestWanted,
       health: G.health,
       armor: G.armor,
       weapons: G.weapons,
@@ -41,7 +44,10 @@ export function loadGame() {
     G.money = data.money ?? G.money;
     G.rp = data.rp ?? G.rp;
     G.missionsDone = data.missionsDone || [];
-    G.missionIndex = data.missionIndex || 0;
+    G.carsStolen = data.carsStolen || 0;
+    G.copsEvaded = data.copsEvaded || 0;
+    G.drivenKm = data.drivenKm || 0;
+    G.bestWanted = data.bestWanted || 0;
     G.health = data.health ?? 100;
     G.armor = data.armor ?? 0;
     if (data.weapons) G.weapons = data.weapons;

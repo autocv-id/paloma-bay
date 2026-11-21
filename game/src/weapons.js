@@ -1,6 +1,5 @@
 // Weapons: the six slots on the HUD, ammo, rank locks and the numbers the
-// combat system uses. Locked weapons show LOCKED until the player's rank
-// unlocks them — progression the judge can see in one glance.
+// combat system uses. Locked weapons show their required rank.
 
 import { WEAPONS, rankFor } from './config.js';
 import { G } from './state.js';

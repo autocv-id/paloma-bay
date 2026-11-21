@@ -1,6 +1,4 @@
-// Police: the wanted system and the PBPD pursuit. Stars rise when the
-// player commits crimes in sight of the law; lose the cops by breaking
-// line of sight until the heat dies down.
+// Police: the wanted system and the PBPD pursuit.
 
 import * as THREE from 'three';
 import { WANTED, POLICE_UNITS } from './config.js';
@@ -10,9 +8,8 @@ import { pick } from './random.js';
 
 const COP_CAR = { id: 'pbpd', name: 'PBPD Interceptor', kind: 'POLICE', top: 56, accel: 27, grip: 1.0, colors: [0xf0f0f0] };
 
-// Pursuit roles, assigned at spawn and kept until close combat: FLANK cuts
-// across the player's line, INTERCEPT aims ahead of the nose, RAM and PIT
-// only happen up close.
+// Pursuit roles, assigned at spawn: FLANK cuts across, INTERCEPT aims
+// ahead of the nose, RAM and PIT only happen up close.
 const ROLES = ['PURSUE', 'PURSUE', 'FLANK', 'INTERCEPT'];
 
 export class Police {
@@ -31,8 +28,9 @@ export class Police {
   setWanted(n, reason) {
     const next = clamp(Math.round(n), 0, 5);
     if (next !== G.wanted) {
+      if (next === 0 && G.wanted > 0) G.copsEvaded++;
+      if (next > G.bestWanted) G.bestWanted = next;
       G.wanted = next;
-      G.evadeTimer = 0;
       G.unseenTimer = 0;
       if (next > this.lastWanted && this.events.onWanted) this.events.onWanted(next, reason);
       this.lastWanted = next;
@@ -135,8 +133,7 @@ export class Police {
         u.x = p.x; u.z = p.z;
       }
       if (u.tactic === 'ROADBLOCK') continue; // parked across the road
-      // close combat: RAM or PIT, sticky once assigned; otherwise the unit
-      // keeps its spawn role
+      // close combat: RAM or PIT, sticky once assigned
       if (d < 14 && want >= 2 && u.tactic !== 'RAM' && u.tactic !== 'PIT') {
         u.tactic = this.rng() < 0.5 ? 'RAM' : 'PIT';
       }

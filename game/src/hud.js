@@ -14,8 +14,7 @@ function stars(n) {
 }
 
 // Procedural face portraits: skin, hair, eyes + one signature accessory
-// per character, drawn in a 52px space and scaled. Drawn once per size,
-// cached, reused by the crew cards and the dialogue portrait.
+// per character. Drawn once per size, cached, reused by crew + dialogue.
 const FACES = {
   iris: ['#e8b08a', '#2a1a2e', 'bun'], rae: ['#c98a5a', '#141414', 'cap'],
   berto: ['#a8723a', '#3a2a1a', 'beard'], nadia: ['#e8b08a', '#e8b04a', 'band'],
@@ -88,7 +87,7 @@ export class Hud {
       const d = document.createElement('div');
       d.className = 'crew-card';
       d.id = 'crew-' + c.id;
-      d.innerHTML = `<span class="c-face"><span class="c-key">${c.key}</span></span><div><div class="c-name">${c.name}</div><div class="c-member">${c.member}</div></div><span class="c-cd"></span>`;
+      d.innerHTML = `<span class="c-face"><span class="c-key">${c.key}</span></span><div><div class="c-name">${c.name}</div><div class="c-member">${c.member}</div></div><span class="c-cd"></span><div class="c-stats">DRV${c.stats[0]} FGT${c.stats[1]} STL${c.stats[2]} TEC${c.stats[3]} · ${c.special}</div>`;
       d.querySelector('.c-face').prepend(faceCanvas(c.npc, 32));
       wrap.appendChild(d);
       this.crewCards.push(d);
@@ -96,7 +95,7 @@ export class Hud {
   }
 
   update(dt, ctx) {
-    const { player, police, missions, heli, radio } = ctx;
+    const { player, police, missions, heli, radio, nearestCar } = ctx;
     // minimap every frame (cheap)
     const marker = missions.marker();
     const showPolice = G.time < G.eyesOutUntil || (heli && heli.active);
@@ -113,6 +112,7 @@ export class Hud {
     this.updateCrew();
     this.updateDialogue();
     this.updateSpeedo(player, radio);
+    this.updateEnterPrompt(nearestCar);
     this.updateBanners();
   }
 
@@ -126,6 +126,7 @@ export class Hud {
       $('mission-stage-text').textContent = '';
       $('mission-next').textContent = '';
       $('mission-timer').textContent = '';
+      $('mission-pay').textContent = '';
       $('mission-stage-fill').style.width = '0%';
       return;
     }
@@ -139,6 +140,7 @@ export class Hud {
     const next = m.def.stages[m.stage + 1];
     $('mission-next').innerHTML = next ? `<b>NEXT</b> ${next.text}` : '<b>NEXT</b> Job done — collect your pay';
     $('mission-timer').textContent = st.timer ? `⏱ ${Math.ceil(m.timer)}s` : '';
+    $('mission-pay').textContent = `PAY ${formatMoney(m.def.reward.money)} · +${m.def.reward.rp} RP`;
   }
 
   updateDispatch(police, player) {
@@ -202,7 +204,7 @@ export class Hud {
       el.classList.toggle('locked', !unlocked);
       const ammo = G.weapons[i].ammo;
       el.querySelector('.w-ammo').textContent = !unlocked
-        ? 'LOCKED'
+        ? 'RANK ' + w.minRank
         : ammo === Infinity ? '∞' : String(ammo);
     });
   }
@@ -231,6 +233,13 @@ export class Hud {
     $('dialogue-name').textContent = npc.name;
     $('dialogue-role').textContent = npc.role;
     $('dialogue-text').textContent = d.lines[d.index];
+  }
+
+  updateEnterPrompt(nearestCar) {
+    const el = $('enter-prompt');
+    const hit = G.onFoot && nearestCar ? nearestCar(3) : null;
+    el.style.display = hit ? 'block' : 'none';
+    if (hit) el.textContent = 'F ENTER ' + hit.v.def.name.toUpperCase();
   }
 
   updateSpeedo(player, radio) {

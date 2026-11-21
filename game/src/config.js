@@ -1,6 +1,5 @@
-// PALOMA BAY — configuration, tuning and every original name in the game.
-// All names, places, people, cars, stations and gangs are invented for this
-// game. Nothing here comes from any commercial game, film or real place.
+// PALOMA BAY — configuration, tuning and every original name. All names
+// are invented; nothing comes from any commercial game, film or real place.
 
 // ---- world layout (metres) ----
 export const BLOCK = 44;
@@ -36,13 +35,13 @@ export function districtAt(x, z) {
 
 // ---- people (all invented) ----
 export const NPCS = {
-  iris: { name: 'Iris Delgado', role: 'FIXER · MARINA ROW', color: '#e078a8', initial: 'ID' },
-  berto: { name: "Berto 'Wrench' Acosta", role: 'MECHANIC · FOUNDRY', color: '#e0a458', initial: 'BA' },
-  nadia: { name: 'Nadia Cole', role: 'LOOKOUT · CORAL HEIGHTS', color: '#7ac8e0', initial: 'NC' },
-  okafor: { name: 'Capt. Okafor', role: 'PBPD DISPATCH', color: '#8fa8c8', initial: 'CO' },
-  volkov: { name: "Dmitri 'Dune' Volkov", role: 'RIVAL CREW · SUNSET KEYS', color: '#b08ae0', initial: 'DV' },
-  rae: { name: 'Rae Delgado', role: 'DRIVER · CREW', color: '#7ad8a0', initial: 'RD' },
-  zara: { name: 'Zara Quinn', role: 'WHEELWOMAN · PALOMA STRAND', color: '#e07878', initial: 'ZQ' },
+  iris: { name: 'Iris Delgado', role: 'FIXER · MARINA ROW', color: '#e078a8' },
+  berto: { name: "Berto 'Wrench' Acosta", role: 'MECHANIC · FOUNDRY', color: '#e0a458' },
+  nadia: { name: 'Nadia Cole', role: 'LOOKOUT · CORAL HEIGHTS', color: '#7ac8e0' },
+  okafor: { name: 'Capt. Okafor', role: 'PBPD DISPATCH', color: '#8fa8c8' },
+  volkov: { name: "Dmitri 'Dune' Volkov", role: 'RIVAL CREW · SUNSET KEYS', color: '#b08ae0' },
+  rae: { name: 'Rae Delgado', role: 'DRIVER · CREW', color: '#7ad8a0' },
+  zara: { name: 'Zara Quinn', role: 'WHEELWOMAN · PALOMA STRAND', color: '#e07878' },
 };
 
 // ---- cars (all invented models) ----
@@ -94,9 +93,9 @@ export const WEAPONS = [
 
 // ---- crew abilities (key, name, member, cooldown seconds) ----
 export const CREW = [
-  { key: 'Z', id: 'swap', name: 'SWAP PLATES', member: 'Rae · Driver', npc: 'rae', cd: 45 },
-  { key: 'X', id: 'fix', name: 'QUICK FIX', member: 'Berto · Mechanic', npc: 'berto', cd: 60 },
-  { key: 'C', id: 'eyes', name: 'EYES OUT', member: 'Nadia · Lookout', npc: 'nadia', cd: 50 },
+  { key: 'Z', id: 'swap', name: 'SWAP PLATES', member: 'Rae · Driver', npc: 'rae', cd: 45, stats: [5, 3, 2, 4], special: 'Wheelman' },
+  { key: 'X', id: 'fix', name: 'QUICK FIX', member: 'Berto · Mechanic', npc: 'berto', cd: 60, stats: [2, 3, 1, 5], special: 'Gearhead' },
+  { key: 'C', id: 'eyes', name: 'EYES OUT', member: 'Nadia · Lookout', npc: 'nadia', cd: 50, stats: [3, 2, 5, 4], special: 'Eagle Eye' },
 ];
 
 // ---- radio stations (procedural music, all original) ----
@@ -119,9 +118,9 @@ export const WANTED = {
 export const TUNE = {
   walkSpeed: 9,
   runSpeed: 14,
-  cameraDistance: 6.0, // driving chase-cam distance (m); the car must read big — rank #1's fills ~25% of frame width
-  cameraFootDistance: 4.8, // on-foot distance: close + low like rank #1 (2-3 m behind, ~1.5 m up)
-  cameraDriveHeight: 0.2, // driving camera height above the look target (low = flat pitch, horizon high)
+  cameraDistance: 6.0, // driving chase-cam distance (m)
+  cameraFootDistance: 4.8, // on-foot distance
+  cameraDriveHeight: 0.2, // driving camera height above the look target
   cameraFootHeight: 0.9, // on-foot camera height above the look target
   dayLengthMin: 24,
   startHour: 17.4,
