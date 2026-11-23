@@ -114,6 +114,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #10141f; fon
 #condition-bar { height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; margin-top: 6px; overflow: hidden; }
 #condition-fill { height: 100%; background: #5ad06a; width: 100%; }
 #condition-text { font-size: 11px; font-weight: bold; color: #5ad06a; margin-top: 2px; }
+#boost-bar { height: 8px; background: rgba(255,255,255,0.15); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+#boost-fill { height: 100%; background: linear-gradient(90deg, #ff9a3d, #ffd24d); width: 100%; }
+#boost-text { font-size: 11px; font-weight: bold; color: #ffd24d; margin-top: 2px; }
 #radio-text { font-size: 13px; color: #e8c832; margin-top: 6px; font-weight: bold; }
 
 /* banners / notices — the center banner stays SMALL: rank #1 has no giant
@@ -145,21 +148,24 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #10141f; fon
 button { pointer-events: auto; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 900; letter-spacing: 1px; color: #111; background: #ffd24d; border: none; border-radius: 6px; padding: 12px 22px; }
 button:hover { background: #ffe08a; }
 .info-panel { margin-top: 16px; background: rgba(12,16,26,0.9); border: 1px solid rgba(255,255,255,0.16); border-radius: 8px; padding: 16px; font-size: 15px; line-height: 1.7; text-align: left; }
-#pause-menu, #garage-screen { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(8,10,18,0.72); pointer-events: auto; }
+#pause-menu { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(8,10,18,0.72); pointer-events: auto; }
+/* garage: a right-side dock, not a full-screen wall — the city and the HUD
+   stay visible on the left while you browse, and the menu stays readable */
+#garage-screen { position: fixed; inset: 0; z-index: 10; display: flex; align-items: stretch; justify-content: flex-end; background: linear-gradient(90deg, rgba(8,10,18,0) 0%, rgba(8,10,18,0.25) 42%, rgba(8,10,18,0.6) 56%, rgba(8,10,18,0.82) 100%); pointer-events: auto; }
 .menu-inner { width: 340px; text-align: center; display: flex; flex-direction: column; gap: 10px; }
 .menu-inner h2 { margin: 4px 0 8px; letter-spacing: 4px; }
-.garage-inner { width: 860px; max-width: 94vw; max-height: 96vh; overflow-y: auto; }
-.garage-inner h2 { margin: 4px 0; letter-spacing: 2px; font-size: 22px; }
-#garage-stats { display: flex; gap: 24px; font-size: 18px; font-weight: 900; margin: 8px 0; }
+.garage-inner { width: 720px; max-width: 58vw; height: 100vh; overflow-y: auto; border-radius: 0; background: rgba(10,14,24,0.96); /* near-opaque: the HUD behind the dock (speedo) must not ghost through */ }
+.garage-inner h2 { margin: 2px 0; letter-spacing: 2px; font-size: 20px; }
+#garage-stats { display: flex; gap: 24px; font-size: 17px; font-weight: 900; margin: 6px 0; }
 #garage-money { color: #7dff9a; }
 #garage-rank { color: #ffd24d; }
-#garage-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 10px 0; }
-.garage-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 9px; }
+#garage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 8px 0; }
+.garage-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px; padding: 7px; }
 .garage-card.owned { border-color: #7ad8a0; }
-.g-name { font-size: 17px; font-weight: 900; }
-.g-kind { font-size: 12px; color: #8fa8c8; }
-.g-up { font-size: 13px; color: #ffd24d; margin: 4px 0; }
-.g-actions { display: flex; flex-direction: column; gap: 5px; }
-.g-actions button { font-size: 12px; padding: 6px 10px; }
+.g-name { font-size: 15px; font-weight: 900; }
+.g-kind { font-size: 11px; color: #8fa8c8; }
+.g-up { font-size: 12px; color: #ffd24d; margin: 3px 0; }
+.g-actions { display: flex; flex-direction: column; gap: 4px; }
+.g-actions button { font-size: 11px; padding: 5px 8px; }
 #btn-garage-close { width: 100%; }
 #selftest-results { position: fixed; left: 0; top: 0; z-index: 50; background: #000; color: #7dff9a; font: 12px monospace; white-space: pre; padding: 10px; }
