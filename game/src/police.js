@@ -1,9 +1,9 @@
 // Police: the wanted system and the PBPD pursuit.
 
-import * as THREE from 'three';
 import { WANTED, POLICE_UNITS } from './config.js';
 import { G, clamp, dist2 } from './state.js';
 import { makeVehicle, driveVehicle, damageVehicle } from './vehicles.js';
+import { spawnRoadblockVehicles } from './roadblock.js';
 import { pick } from './random.js';
 
 const COP_CAR = { id: 'pbpd', name: 'PBPD Interceptor', kind: 'POLICE', top: 56, accel: 27, grip: 1.0, colors: [0xf0f0f0] };
@@ -63,19 +63,9 @@ export class Police {
   }
 
   spawnRoadblock(px, pz, heading) {
-    const fx = px + Math.sin(heading) * 70;
-    const fz = pz + Math.cos(heading) * 70;
-    const group = new THREE.Group();
-    const meshes = [];
-    for (const off of [-4, 0, 4]) {
-      const v = makeVehicle(COP_CAR, fx + Math.cos(heading) * off, fz - Math.sin(heading) * off,
-        heading + Math.PI / 2, { police: true, unitName: this.nextUnitName(), tactic: 'ROADBLOCK' });
-      v.speed = 0;
-      this.units.push(v);
-      this.scene.add(v.mesh);
-      meshes.push(v);
-    }
-    this.roadblocks.push({ x: fx, z: fz, heading, meshes, group });
+    const rb = spawnRoadblockVehicles(this.scene, COP_CAR, px, pz, heading, () => this.nextUnitName());
+    for (const v of rb.meshes) this.units.push(v);
+    this.roadblocks.push(rb);
     if (this.events.onRoadblock) this.events.onRoadblock();
   }
 
@@ -96,7 +86,7 @@ export class Police {
   playerSeen(px, pz) {
     for (const u of this.units) {
       if (u.burnt) continue;
-      if (dist2(u.x, u.z, px, pz) < 95) return true;
+      if (dist2(u.x, u.z, px, pz) < WANTED.searchRadius) return true;
     }
     return false;
   }

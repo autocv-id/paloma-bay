@@ -28,6 +28,8 @@ function freshState() {
     armor: 0,
     onFoot: true,
     car: null, // vehicle object when driving
+    boost: 100, // nitro meter (0..100, see boost.js)
+    boosting: false, // SHIFT held while driving with meter left
     playerX: 190, playerZ: 40, heading: Math.PI, // on the boulevard
     playerSpeed: 0,
     moving: false,

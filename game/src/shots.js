@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { G } from './state.js';
 import { carById, CARS } from './config.js';
 import { MISSIONS } from './story.js';
-import { makeVehicle } from './vehicles.js';
+import { makeVehicle, driveVehicle } from './vehicles.js';
 import { say } from './notify.js';
 
 export function applyShot(name, ctx) {
@@ -14,8 +14,9 @@ export function applyShot(name, ctx) {
   G.shot = name;
   if (name === 'chase') {
     // COVER: FRONT three-quarter view — camera ahead of the hero car,
-    // police pursuit visible BEHIND it.
-    G.clock = 12.5; G.day = 9;
+    // police pursuit visible BEHIND it. Golden hour: the dusk phase
+    // (16.5-19.5) gives a warm sky, long shadows and lit windows.
+    G.clock = 17.8; G.day = 9;
     G.money = 18450; G.rp = 3900; G.health = 72; G.armor = 55;
     G.missionsDone = MISSIONS.slice(0, 9).map((m) => m.id);
     const def = MISSIONS[9];
@@ -46,17 +47,59 @@ export function applyShot(name, ctx) {
       u.mesh.rotation.y = Math.PI;
     }
     say('iris', ["Five stars, Kade. The whole city is watching — do not get caught."]);
-    // Civilian traffic on the road behind the player (in frame, south).
-    for (const [cx, cz, ci] of [[192, 110, 0], [201, 130, 1], [193, 150, 2], [200, 170, 3], [194, 190, 4], [203, 210, 5]]) {
+    // A PBPD roadblock across the boulevard, staged where the chase camera
+    // can see it: the camera looks south, so the block sits south of the
+    // player start — at the shutter it is ~45 m behind the hero car, three
+    // interceptors parked sideways with ROADBLOCK badges in the dispatch.
+    // (spawnRoadblock places it 70 m from the anchor in the heading.)
+    police.spawnRoadblock(196, 32, 0);
+    // A burning van spun out onto the east sidewalk edge: the crash the
+    // chase left behind, clear of the traffic cluster so its fire column
+    // stands in open sky. It burns (fire + smoke) through the shutter and
+    // never detonates — burnTimer starts at -30, as in the night shot.
+    const wreck = makeVehicle(carById('pelican-van'), 209, 76, 0.9, { colorIndex: 0 });
+    wreck.condition = 0;
+    wreck.burning = true;
+    wreck.burnTimer = -30;
+    ctx.scene.add(wreck.mesh);
+    ctx.extraVehicles.push(wreck);
+    // Near-field traffic: staged NORTH of the player start, so the hero car
+    // (45 m/s) catches them by the shutter — at capture they sit 3-30 m
+    // behind it, large in the frame, instead of dots on the horizon.
+    // (The camera looks south-east, so the east lane reads centre-frame;
+    // the west lane lands behind the right HUD — all near cars use x>=198.
+    // The (202,60) van sits beside the lagging camera and reads as the
+    // big car at the frame's left edge.)
+    for (const [cx, cz, ci] of [[202, 60, 6], [198, 73, 3], [205, 80, 7], [200, 86, 5], [203, 92, 1]]) {
       const cv = makeVehicle(CARS[ci % CARS.length], cx, cz, Math.PI, { npc: true, colorIndex: ci % 4 });
       cv.target = { x: cx, z: -224 }; // north, toward and past the camera
       cv.speed = 5;
       ctx.scene.add(cv.mesh);
       traffic.cars.push(cv);
     }
-    // Walkers on the beach-side sidewalk, in frame (south of the car).
-    ctx.peds.spawnAt(207, 100, Math.PI, { x: 207, z: -40 });
-    ctx.peds.spawnAt(207, 130, Math.PI, { x: 207, z: -70 });
+    // Civilian traffic on the road behind the player (in frame, south).
+    // Twelve cars, z 110-275: at the ~1 game-second the shutter catches,
+    // the nearest sit 50-130 m behind the player, the rest dot the road.
+    for (const [cx, cz, ci] of [[192, 110, 0], [201, 125, 1], [193, 140, 2], [200, 155, 3], [194, 170, 4], [203, 185, 5], [192, 200, 6], [201, 215, 7], [194, 230, 8], [202, 245, 9], [193, 260, 0], [200, 275, 2]]) {
+      const cv = makeVehicle(CARS[ci % CARS.length], cx, cz, Math.PI, { npc: true, colorIndex: ci % 4 });
+      cv.target = { x: cx, z: -224 }; // north, toward and past the camera
+      cv.speed = 5;
+      ctx.scene.add(cv.mesh);
+      traffic.cars.push(cv);
+    }
+    // Walkers on the EAST sidewalk only: the camera looks south-east, so
+    // the west sidewalk lands behind the right HUD at any range. Eight
+    // walkers, z 68-165: the nearest read large beside the action, the
+    // rest give the street depth.
+    for (const [px, pz] of [[207, 68], [207, 82], [207, 95], [207, 108], [207, 122], [207, 136], [207, 150], [207, 165]]) {
+      ctx.peds.spawnAt(px, pz, Math.PI, { x: px, z: pz - 130 });
+    }
+    // Parked cars on the curbs: the street reads busy even standing still.
+    for (const [vx, vz, vi] of [[205, 75, 3], [187, 105, 1], [205, 150, 6], [187, 190, 8]]) {
+      const pv = makeVehicle(CARS[vi % CARS.length], vx, vz, Math.PI / 2, { npc: true, colorIndex: vi % 4 });
+      ctx.scene.add(pv.mesh);
+      ctx.extraVehicles.push(pv);
+    }
     // A parked scooter on the sidewalk: the second vehicle type.
     const scooter = makeVehicle(carById('gull-scooter'), 208, 95, Math.PI / 2, { npc: true, colorIndex: 0 });
     ctx.scene.add(scooter.mesh);
@@ -113,7 +156,10 @@ export function applyShot(name, ctx) {
     say('iris', ['New in town, Kade? Everyone starts the same way here: on foot.']);
     cameraRig.snapTo(285, 0, Math.PI);
   } else if (name === 'garage') {
-    // Garage screen open: money, rank, owned cars and upgrades visible.
+    // Garage dock open over a LIVE street: the menu is the right dock,
+    // the left half shows the city — the Paloma GT parked outside, traffic
+    // on Harbor Lights Ave, walkers, the Ferris wheel down the street.
+    // Garage mode freezes the loop, so everything here is placed, not driven.
     G.clock = 17.4; G.day = 12;
     G.money = 25430; G.rp = 4200;
     G.missionsDone = MISSIONS.slice(0, 4).map((m) => m.id);
@@ -124,10 +170,45 @@ export function applyShot(name, ctx) {
       'tern-coupe': { engine: 0, armor: 2 },
     };
     G.garageCar = 'paloma-gt';
-    player.reset(140, -120, Math.PI / 2);
+    // Job 5/10 active (stage 2 of the run: reach Sunset Keys), no heat —
+    // the mission panel + minimap marker stay, the dispatch stays empty.
+    missions.startMission(MISSIONS[4]);
+    G.mission.stage = 1;
+    missions.startStage();
+    police.setWanted(0, 'garage');
+    G.banner = null; // startMission's job + wanted banners would sit on the frame
+    G.dialogue = null; // the intro line would run under the dock
+    player.reset(140, -112, Math.PI / 2); // on Harbor Lights Ave, facing east
+    // The garage car itself, pulled out of the garage and about to join the
+    // street: north-facing on the north curb (z smaller = more north), so
+    // the camera looking east sees its full side profile in the visible
+    // left strip — high enough in the frame (y≈284–342) to clear the
+    // location card below it. The dock covers everything right of ~6° left
+    // of the view axis, so anything near the axis — or on the south half —
+    // is hidden.
+    const gt = makeVehicle(carById('paloma-gt'), 155, -117, Math.PI, { npc: true, colorIndex: 0 });
+    gt.upgrades = G.upgrades['paloma-gt'];
+    ctx.scene.add(gt.mesh);
+    ctx.parkedCars.push(gt);
+    // Traffic placed where the visible strip can see it: two cars on the
+    // Marina Row cross street, receding north from the intersection. (A
+    // third, nearer car at (168,-122) overlapped the GT in the frame.)
+    // Frozen (garage mode never ticks traffic).
+    for (const [cx, cz, ch, ci] of [[168, -128, Math.PI, 3], [168, -138, Math.PI, 5]]) {
+      const cv = makeVehicle(CARS[ci % CARS.length], cx, cz, ch, { npc: true, colorIndex: ci % 4 });
+      cv.target = { x: cx + (ch > 0 ? 60 : -60), z: cz };
+      ctx.scene.add(cv.mesh);
+      traffic.cars.push(cv);
+    }
+    // Walkers on the north sidewalk (the south sidewalk is behind the dock
+    // from this camera).
+    for (const [px, pz] of [[150, -120.5], [172, -120.5], [195, -120.5]]) {
+      ctx.peds.spawnAt(px, pz, Math.PI / 2, { x: px + 60, z: pz });
+    }
     ui.showGarage();
     G.mode = 'garage';
-    cameraRig.snapTo(140, -120, Math.PI / 2);
+    ctx.world.update(0, G.clock); // garage mode never ticks the sky; set dusk now
+    cameraRig.snapTo(140, -112, Math.PI / 2);
   } else if (name === 'night') {
     // Night shootout on the BOULEVARD, facing north: CORAL CLUB + PIER 9
     // neon right, 5 stars, helicopter, burning car, SMG.
@@ -156,6 +237,9 @@ export function applyShot(name, ctx) {
       u.mesh.position.set(u.x, 0, u.z);
       u.mesh.rotation.y = 0;
     }
+    // A PBPD roadblock across the boulevard, 100 m up the road: three
+    // interceptors parked sideways, ROADBLOCK badges in the dispatch panel.
+    police.spawnRoadblock(198, -30, Math.PI);
     // Drop the 4+ star on-foot camera lift: it pushed the player down
     // behind the dialogue box.
     cameraRig.lookYLift = 0;
@@ -273,8 +357,14 @@ export async function runSelfTest(ctx) {
       missions.failMission('test cleanup');
     }
 
-    // 9. shooting damages a car
-    const target = traffic.nearest(G.playerX, G.playerZ, 400);
+    // 9. shooting damages a car (nearest non-scooter: a scooter's deck
+    // sits below the aim point, so it is a test-geometry miss, not a miss
+    // by the shooting system)
+    const target = traffic.cars.filter((v) => v.def.kind !== 'SCOOTER')
+      .reduce((best, v) => {
+        const d = Math.hypot(v.x - G.playerX, v.z - G.playerZ);
+        return !best || d < best.d ? { v, d } : best;
+      }, null)?.v || null;
     if (target) {
       const c0 = target.condition;
       player.reset(target.x + 6, target.z + 6, Math.atan2(target.x - (target.x + 6), target.z - (target.z + 6)));
@@ -286,7 +376,7 @@ export async function runSelfTest(ctx) {
       camera.updateMatrixWorld(true);
       combat.shoot(camera, [target], ctx.peds);
       await waitFrames(10);
-      check(target.condition < c0, 'shoot: P9 damages a car', `${c0.toFixed(0)} -> ${target.condition.toFixed(0)}`);
+      check(target.condition < c0, 'shoot: P9 damages a car', `${target.def.id} ${c0.toFixed(0)} -> ${target.condition.toFixed(0)}`);
     }
 
     // 10. save / load round-trip
@@ -315,6 +405,44 @@ export async function runSelfTest(ctx) {
     const pausedOk = G.paused === true;
     ctx.setPaused(false);
     check(pausedOk, 'pause: toggles');
+
+    // 14. roadblock: three interceptors across the road, ROADBLOCK tactic
+    police.reset();
+    police.setWanted(3, 'test');
+    police.spawnRoadblock(G.playerX, G.playerZ, 0);
+    await waitFrames(5);
+    check(police.roadblocks.length === 1 && police.units.filter((u) => u.tactic === 'ROADBLOCK').length === 3,
+      'roadblock: 3 units hold the road', `${police.units.filter((u) => u.tactic === 'ROADBLOCK').length} units`);
+    police.reset();
+
+    // 15. nitro boost: the cap rises under nitro, and SHIFT drains the meter
+    const t = makeVehicle(carById('sloop-sedan'), -300, -300, 0, {});
+    t.speed = 43; // just under the 44 m/s stock top
+    driveVehicle(t, 1, 0, 0.5, null, 1);
+    const capped = t.speed;
+    t.speed = 43;
+    driveVehicle(t, 1, 0, 0.5, null, 1.4);
+    check(capped <= 44 && t.speed > 44, 'boost: nitro raises the top speed',
+      `${capped.toFixed(0)} -> ${t.speed.toFixed(0)} m/s`);
+    const car2 = traffic.nearest(G.playerX, G.playerZ, 400);
+    if (car2) {
+      player.reset(car2.x + 3, car2.z, 0);
+      ctx.tryEnterCar();
+      await waitFrames(5);
+      if (!G.onFoot && G.car) {
+        const m0 = G.boost;
+        input.fakePress('ShiftLeft');
+        input.fakePress('KeyW');
+        await waitFrames(30);
+        check(G.boosting && G.boost < m0, 'boost: SHIFT drains the meter while driving',
+          `${m0.toFixed(0)} -> ${G.boost.toFixed(0)}`);
+        input.fakeRelease('KeyW');
+        input.fakeRelease('ShiftLeft');
+        player.exitCar();
+      } else {
+        check(false, 'boost: setup (enter car failed)');
+      }
+    }
 
     check(G.errors.length === 0, 'final: no console errors', G.errors.slice(0, 2).join(' | '));
   } catch (e) {

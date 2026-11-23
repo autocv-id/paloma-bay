@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { TUNE, carById } from './config.js';
 import { G, clamp } from './state.js';
 import { makeVehicle, driveVehicle, vehicleSpeedKmh } from './vehicles.js';
+import { tickBoost, boostTopMult } from './boost.js';
 
 // A limb hanging from a pivot at the joint: rotating the group swings it.
 export function limbPivot(g, w, h, d, mat, x, y) {
@@ -98,11 +99,12 @@ export class Player {
     this.mesh.userData.arms[1].rotation.x = swing * 0.7;
   }
 
-  // Drive step: throttle -1..1, steer -1..1.
-  updateDriving(dt, throttle, steer) {
+  // Drive step: throttle -1..1, steer -1..1, boosting = SHIFT held.
+  updateDriving(dt, throttle, steer, boosting = false) {
     if (!G.car) return;
     this.mesh.visible = false;
-    driveVehicle(G.car, throttle, steer, dt, (x, z, r) => this.world.collide(x, z, r));
+    tickBoost(dt, boosting);
+    driveVehicle(G.car, throttle, steer, dt, (x, z, r) => this.world.collide(x, z, r), boostTopMult());
   }
 
   enterCar(v) {

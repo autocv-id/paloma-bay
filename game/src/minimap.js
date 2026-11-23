@@ -1,7 +1,7 @@
 // Minimap: a 2D canvas under the HUD. Roads, beach and ocean in miniature,
 // the player as a white arrow, the mission target as a gold diamond.
 
-import { STREETS, BEACH_X, OCEAN_X } from './config.js';
+import { STREETS, BEACH_X, OCEAN_X, WANTED } from './config.js';
 
 export class Minimap {
   constructor(canvas) {
@@ -18,7 +18,7 @@ export class Minimap {
     return [mx, mz];
   }
 
-  draw(playerX, playerZ, heading, marker, policeUnits, showPolice) {
+  draw(playerX, playerZ, heading, marker, policeUnits, showPolice, wanted) {
     const g = this.ctx;
     const s = this.size;
     g.clearRect(0, 0, s, s);
@@ -70,6 +70,20 @@ export class Minimap {
       g.lineWidth = 2;
       g.setLineDash([6, 4]);
       g.beginPath(); g.moveTo(px, pz); g.lineTo(mx, mz); g.stroke();
+      g.setLineDash([]);
+    }
+    // search zone: while wanted, the ring the PBPD is sweeping — the sight
+    // range around the player, dashed red so it reads against the gold route
+    if (wanted >= 1) {
+      const rx = (WANTED.searchRadius / 620) * s;
+      const rz = (WANTED.searchRadius / 520) * s;
+      const [sx, sz] = this.toMap(playerX, playerZ);
+      g.strokeStyle = 'rgba(255,80,64,0.9)';
+      g.lineWidth = 2;
+      g.setLineDash([5, 4]);
+      g.beginPath();
+      g.ellipse(sx, sz, rx, rz, 0, 0, Math.PI * 2);
+      g.stroke();
       g.setLineDash([]);
     }
     // police dots (Eyes Out or heli spotlight)

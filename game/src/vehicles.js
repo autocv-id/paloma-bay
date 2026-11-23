@@ -184,11 +184,12 @@ export function makeVehicle(carDef, x, z, heading, opts = {}) {
   };
 }
 
-// Arcade car step: throttle -1..1, steer -1..1. Returns nothing; mutates v.
-export function driveVehicle(v, throttle, steerInput, dt, collide) {
+// Arcade car step: throttle -1..1, steer -1..1. topMult raises the speed
+// cap (nitro boost); everyone else calls it with the default 1.
+export function driveVehicle(v, throttle, steerInput, dt, collide, topMult = 1) {
   const def = v.def;
   const up = v.upgrades || { engine: 0, armor: 0 };
-  const top = def.top * (1 + up.engine * 0.12);
+  const top = def.top * (1 + up.engine * 0.12) * topMult;
   const accel = def.accel * (1 + up.engine * 0.1);
   if (v.burnt) { v.speed *= 0.9; return; }
   if (throttle > 0) v.speed += accel * throttle * dt;
@@ -199,7 +200,8 @@ export function driveVehicle(v, throttle, steerInput, dt, collide) {
     v.speed -= v.speed * 0.55 * dt; // drag
     if (Math.abs(v.speed) < 0.05) v.speed = 0;
   }
-  v.speed = clamp(v.speed, -12, top);
+  if (v.speed > top) v.speed = Math.max(top, v.speed - 20 * dt); // boost bleed-off, not a snap
+  else v.speed = clamp(v.speed, -12, top);
   const spd = Math.abs(v.speed);
   const turn = steerInput * clamp(spd / 8, 0, 1) * 1.9 * (v.speed >= 0 ? 1 : -1);
   v.heading += turn * dt * def.grip;

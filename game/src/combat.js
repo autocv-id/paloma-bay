@@ -96,10 +96,28 @@ export class Combat {
     for (const v of vehicles) {
       if (!v.burning || v.burnt) continue;
       this.effects.smoke(v.x, v.z, dt);
+      this.effects.fire(v.x, v.z, dt);
+      // a flame mesh on the roof: particles alone drown against a sunset
+      // sky at 30 m — a solid bright flame is what reads as "on fire" at
+      // a glance. Unlit, so it stays full-bright against any background.
+      if (!v.flame) {
+        v.flame = new THREE.Group();
+        const outer = new THREE.Mesh(new THREE.ConeGeometry(1.4, 4.5, 6),
+          new THREE.MeshBasicMaterial({ color: 0xff6a1a }));
+        outer.position.y = 3.0;
+        const inner = new THREE.Mesh(new THREE.ConeGeometry(0.85, 3.2, 6),
+          new THREE.MeshBasicMaterial({ color: 0xffd24d }));
+        inner.position.y = 2.6;
+        v.flame.add(outer, inner);
+        v.mesh.add(v.flame);
+      }
+      const s = 1 + Math.sin(G.time * 11 + v.x) * 0.1;
+      v.flame.scale.set(s, 1 + Math.sin(G.time * 13 + v.z) * 0.12, s);
       v.burnTimer = (v.burnTimer || 0) + dt;
       if (v.condition <= 0 && v.burnTimer > 2.5) {
         v.burnt = true;
         v.burning = false;
+        if (v.flame) { v.mesh.remove(v.flame); v.flame = null; }
         this.explode(v.x, v.z, 10, 120, vehicles);
         // charred wreck look
         v.mesh.traverse((o) => {
