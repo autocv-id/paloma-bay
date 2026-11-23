@@ -99,7 +99,7 @@ export class Hud {
     // minimap every frame (cheap)
     const marker = missions.marker();
     const showPolice = G.time < G.eyesOutUntil || (heli && heli.active);
-    this.minimap.draw(player.x, player.z, player.heading, marker, police.units, showPolice);
+    this.minimap.draw(player.x, player.z, player.heading, marker, police.units, showPolice, G.wanted);
     // text panels at 10 Hz
     this.lastText += dt;
     if (this.lastText < 0.1) return;
@@ -157,7 +157,7 @@ export class Hud {
       `<div class="d-row"><span class="d-name">${r.name}</span><span class="d-tactic ${r.tactic.toLowerCase()}">${r.tactic}</span><span class="d-dist">${r.dist} m</span></div>`,
     ).join('');
     $('dispatch-foot').textContent = police.roadblocks.length
-      ? '+ roadblock ahead — smash through or go around'
+      ? '+ roadblock set — smash through or go around'
       : 'All units converging on your position';
   }
 
@@ -256,6 +256,14 @@ export class Hud {
       $('vehicle-kind').textContent = G.car.def.kind;
       $('condition-fill').style.width = `${Math.max(0, G.car.condition)}%`;
       $('condition-text').textContent = `${Math.round(G.car.condition)}% CONDITION`;
+    }
+    // nitro meter: visible only while driving
+    const bb = $('boost-bar');
+    bb.style.display = G.onFoot ? 'none' : 'block';
+    $('boost-text').style.display = G.onFoot ? 'none' : 'block';
+    if (!G.onFoot) {
+      $('boost-fill').style.width = `${Math.max(0, G.boost)}%`;
+      $('boost-text').textContent = G.boosting ? 'BOOSTING' : (G.boost < 25 ? 'BOOST LOW' : 'BOOST · SHIFT');
     }
     const st = radio.station;
     $('radio-text').textContent = `♪ ${st.name} — "${st.song}" · ${st.artist}`;

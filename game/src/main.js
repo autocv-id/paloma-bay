@@ -85,7 +85,7 @@ const policeEvents = {
     audio.wantedUp();
   },
   onBusted() { busted(); },
-  onRoadblock() { notice('Roadblock ahead — smash through or go around'); },
+  onRoadblock() { notice('Roadblock set — smash through or go around'); },
 };
 police = new Police(scene, world, rng, policeEvents);
 missions = new Missions(scene, world, police);
@@ -349,7 +349,10 @@ function updatePlaying(dt) {
     const throttle = axes.f;
     const steer = axes.s * (handbrake ? 1.5 : 1);
     if (handbrake && G.car) G.car.speed *= (1 - 1.8 * dt);
-    player.updateDriving(dt, throttle, steer);
+    // SHIFT is nitro while driving (run on foot): boost flames + meter
+    const boosting = input.down('ShiftLeft') || input.down('ShiftRight');
+    player.updateDriving(dt, throttle, steer, boosting);
+    if (G.boosting && G.car) effects.boostFlame(G.car.x, G.car.z, G.car.heading);
   }
 
   // shooting (on foot only)
@@ -492,10 +495,14 @@ if (SELFTEST) {
 } else if (SHOT) {
   G.mode = 'playing';
   ui.hideTitle(); // note: hideTitle shows the HUD, so set it explicitly below
-  showHud(SHOT !== 'garage'); // garage shot: the overlay is the frame
+  showHud(true); // the HUD is part of every frame now, garage included
   const ctx = {
     scene, player, police, missions, traffic, peds, heli, combat, radio, input, camera,
     cameraRig, ui, world, extraVehicles, parkedCars,
   };
   applyShot(SHOT, ctx);
+  if (SHOT === 'garage') {
+    // garage mode freezes the loop, so paint one HUD frame here
+    hud.update(0.2, { player, police, missions, heli, radio, nearestCar });
+  }
 }

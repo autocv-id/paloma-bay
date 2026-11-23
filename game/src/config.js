@@ -110,6 +110,7 @@ export const WANTED = {
   maxUnits: [0, 2, 3, 4, 5, 6], // police cars by star level
   heliAt: 4, // stars when the helicopter arrives
   roadblockAt: 3, // stars when roadblocks appear
+  searchRadius: 95, // metres: a unit inside this ring counts as seeing the player — the search zone drawn on the minimap
   evadeSeconds: 14, // unseen time before a star drops
   bustSeconds: 3, // standing still near police while wanted
 };
